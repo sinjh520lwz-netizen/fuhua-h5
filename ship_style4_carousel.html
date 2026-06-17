@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>风格4: 卡片轮播</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;background:#F5F5F7;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* 顶部 */
+.header{
+  position:sticky;top:0;z-index:100;
+  padding:16px 20px;padding-top:calc(16px + env(safe-area-inset-top));
+  background:rgba(255,255,255,0.9);
+  backdrop-filter:saturate(180%) blur(20px);
+  text-align:center;
+}
+.header h1{font-size:17px;font-weight:600}
+.header-sub{font-size:12px;color:#9CA3AF;margin-top:2px}
+
+/* 状态统计 */
+.status-bar{display:flex;gap:12px;padding:16px 20px;overflow-x:auto;scrollbar-width:none}
+.status-bar::-webkit-scrollbar{display:none}
+.status-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 16px;border-radius:20px;
+  background:white;box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  white-space:nowrap;cursor:pointer;transition:all 0.2s;
+}
+.status-chip.active{background:#1F2937;color:white}
+.status-dot{width:8px;height:8px;border-radius:50%}
+.status-dot.port{background:#3B82F6}
+.status-dot.sea{background:#10B981}
+.status-dot.nansha{background:#F59E0B}
+.status-count{font-size:15px;font-weight:600}
+.status-label{font-size:12px;color:#9CA3AF}
+
+/* 轮播卡片 */
+.carousel-section{padding:20px 0}
+.carousel-title{font-size:22px;font-weight:700;padding:0 20px;margin-bottom:16px}
+.carousel{display:flex;gap:16px;padding:0 20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.carousel::-webkit-scrollbar{display:none}
+
+.ship-card{
+  flex:0 0 calc(100% - 40px);scroll-snap-align:start;
+  background:white;border-radius:20px;
+  padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08);
+  transition:all 0.3s;cursor:pointer;
+}
+.ship-card:active{transform:scale(0.97)}
+
+.ship-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.ship-card-name{font-size:22px;font-weight:700}
+.ship-card-status{
+  padding:6px 14px;border-radius:20px;
+  font-size:13px;font-weight:600;
+}
+.ship-card-status.port{background:#EFF6FF;color:#3B82F6}
+.ship-card-status.sea{background:#ECFDF5;color:#10B981}
+.ship-card-status.nansha{background:#FFFBEB;color:#D97706}
+
+.ship-card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px}
+.ship-card-item{
+  padding:14px;background:#F9FAFB;border-radius:12px;
+}
+.ship-card-item-label{font-size:11px;color:#9CA3AF;margin-bottom:4px}
+.ship-card-item-value{font-size:15px;font-weight:600}
+
+.ship-card-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:16px;border-top:1px solid #F3F4F6;
+}
+.ship-card-contact{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:#6B7280;
+}
+.ship-card-action{
+  padding:8px 16px;background:#1F2937;color:white;
+  border-radius:20px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+}
+.ship-card-action:active{transform:scale(0.95);background:#374151}
+
+/* 分页指示器 */
+.pagination{display:flex;justify-content:center;gap:6px;padding:16px}
+.dot{width:6px;height:6px;border-radius:50%;background:#D1D5DB;transition:all 0.3s}
+.dot.active{width:20px;border-radius:3px;background:#1F2937}
+
+/* 详情弹窗 */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:1000;opacity:0;pointer-events:none;
+  transition:opacity 0.3s;
+}
+.modal-overlay.active{opacity:1;pointer-events:auto}
+.modal{
+  position:fixed;bottom:0;left:0;right:0;
+  background:white;border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+  z-index:1001;max-height:80vh;overflow-y:auto;
+}
+.modal-overlay.active + .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:#D1D5DB;border-radius:2px;margin:0 auto 16px}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:20px}
+.modal-field{display:flex;padding:12px 0;border-bottom:1px solid #F3F4F6}
+.modal-field-label{width:80px;font-size:14px;color:#9CA3AF}
+.modal-field-value{flex:1;font-size:14px;font-weight:500}
+.modal-field-value a{color:#3B82F6;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>富华捕虾公司</h1>
+  <div class="header-sub">船舶卡片轮播</div>
+</div>
+
+<div class="status-bar" id="statusBar"></div>
+
+<div class="carousel-section">
+  <div class="carousel-title">全部船舶</div>
+  <div class="carousel" id="carousel"></div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-title" id="modalTitle"></div>
+  <div id="modalBody"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+let ships = [];
+let currentSlide = 0;
+
+async function loadShips() {
+  const res = await fetch(API_CONFIG.getUrl('/api/ships'));
+  const data = await res.json();
+  ships = data.data || [];
+  renderStatusBar();
+  renderCarousel();
+  initPagination();
+}
+
+function renderStatusBar() {
+  const port = ships.filter(s => !s.isSouthSea && !s.remark?.includes('锚地')).length;
+  const sea = ships.filter(s => !s.isSouthSea && s.remark?.includes('锚地')).length;
+  const nansha = ships.filter(s => s.isSouthSea).length;
+  
+  document.getElementById('statusBar').innerHTML = `
+    <div class="status-chip active"><div class="status-dot port"></div><span class="status-count">${port}</span><span class="status-label">在港</span></div>
+    <div class="status-chip"><div class="status-dot sea"></div><span class="status-count">${sea}</span><span class="status-label">出海</span></div>
+    <div class="status-chip"><div class="status-dot nansha"></div><span class="status-count">${nansha}</span><span class="status-label">南沙</span></div>
+  `;
+}
+
+function getStatus(s) {
+  if (s.isSouthSea) return 'nansha';
+  if (s.remark?.includes('锚地')) return 'sea';
+  return 'port';
+}
+
+function getStatusText(s) {
+  if (s.isSouthSea) return '南沙';
+  if (s.remark?.includes('锚地')) return '出海';
+  return '在港';
+}
+
+function renderCarousel() {
+  const carousel = document.getElementById('carousel');
+  
+  carousel.innerHTML = ships.map((s, i) => {
+    const status = getStatus(s);
+    const statusText = getStatusText(s);
+    const age = s.buildDate ? Math.floor((Date.now() - new Date(s.buildDate)) / (365.25*24*60*60*1000)) : '--';
+    
+    return `
+      <div class="ship-card" onclick="showDetail(${i})">
+        <div class="ship-card-header">
+          <div class="ship-card-name">${s.shipName}</div>
+          <div class="ship-card-status ${status}">${statusText}</div>
+        </div>
+        <div class="ship-card-grid">
+          <div class="ship-card-item">
+            <div class="ship-card-item-label">船主</div>
+            <div class="ship-card-item-value">${s.owner}</div>
+          </div>
+          <div class="ship-card-item">
+            <div class="ship-card-item-label">船龄</div>
+            <div class="ship-card-item-value">${age}年</div>
+          </div>
+          <div class="ship-card-item">
+            <div class="ship-card-item-label">材质</div>
+            <div class="ship-card-item-value">${s.hullMaterial}</div>
+          </div>
+          <div class="ship-card-item">
+            <div class="ship-card-item-label">马力</div>
+            <div class="ship-card-item-value">${s.power}匹</div>
+          </div>
+        </div>
+        <div class="ship-card-footer">
+          <div class="ship-card-contact">📞 ${s.tel}</div>
+          <div class="ship-card-action">查看详情</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function initPagination() {
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = ships.map((_, i) => 
+    `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></div>`
+  ).join('');
+  
+  // 监听滚动
+  const carousel = document.getElementById('carousel');
+  carousel.addEventListener('scroll', () => {
+    const slideWidth = carousel.children[0]?.offsetWidth + 16 || 300;
+    const index = Math.round(carousel.scrollLeft / slideWidth);
+    if (index !== currentSlide) {
+      currentSlide = index;
+      updatePagination();
+    }
+  });
+}
+
+function goToSlide(index) {
+  const carousel = document.getElementById('carousel');
+  const slideWidth = carousel.children[0]?.offsetWidth + 16 || 300;
+  carousel.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
+  currentSlide = index;
+  updatePagination();
+}
+
+function updatePagination() {
+  document.querySelectorAll('.dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === currentSlide);
+  });
+}
+
+function showDetail(index) {
+  const s = ships[index];
+  const age = s.buildDate ? Math.floor((Date.now() - new Date(s.buildDate)) / (365.25*24*60*60*1000)) : '--';
+  
+  document.getElementById('modalTitle').textContent = s.shipName;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-field"><div class="modal-field-label">船主</div><div class="modal-field-value">${s.owner}</div></div>
+    <div class="modal-field"><div class="modal-field-label">电话</div><div class="modal-field-value"><a href="tel:${s.tel}">${s.tel}</a></div></div>
+    <div class="modal-field"><div class="modal-field-label">状态</div><div class="modal-field-value">${getStatusText(s)}</div></div>
+    <div class="modal-field"><div class="modal-field-label">材质</div><div class="modal-field-value">${s.hullMaterial}</div></div>
+    <div class="modal-field"><div class="modal-field-label">船龄</div><div class="modal-field-value">${age}年</div></div>
+    <div class="modal-field"><div class="modal-field-label">马力</div><div class="modal-field-value">${s.power}匹</div></div>
+    <div class="modal-field"><div class="modal-field-label">捕捞类型</div><div class="modal-field-value">${s.fishingType}</div></div>
+    <div class="modal-field"><div class="modal-field-label">年检到期</div><div class="modal-field-value">${s.annualInspect || '--'}</div></div>
+  `;
+  
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+loadShips();
+</script>
+</body>
+</html>
