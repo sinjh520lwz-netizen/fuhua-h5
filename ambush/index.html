@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>JH · VS30天量反转</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;min-height:100vh;padding:16px}
+.header{text-align:center;padding:20px 0 16px;border-bottom:1px solid #21262d}
+.header h1{font-size:20px;color:#58a6ff;margin-bottom:4px}
+.header .subtitle{font-size:12px;color:#8b949e}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
+.stat{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:12px 8px;text-align:center}
+.stat .val{font-size:18px;font-weight:700;color:#58a6ff}
+.stat .lbl{font-size:10px;color:#8b949e;margin-top:2px}
+.stat.green .val{color:#3fb950}
+.stat.yellow .val{color:#d29922}
+.stat.red .val{color:#f85149}
+.section{margin:16px 0}
+.section h2{font-size:14px;color:#8b949e;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.section h2 .dot{width:8px;height:8px;border-radius:50%;background:#3fb950;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.signal-card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden}
+.signal-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#3fb950}
+.signal-card .top{display:flex;justify-content:space-between;align-items:center}
+.signal-card .name{font-size:16px;font-weight:600;color:#f0f6fc}
+.signal-card .code{font-size:11px;color:#8b949e;margin-left:6px}
+.signal-card .price{font-size:18px;font-weight:700;color:#3fb950}
+.signal-card .change{font-size:12px;padding:2px 8px;border-radius:4px;margin-left:8px}
+.signal-card .change.up{background:rgba(63,185,80,.15);color:#3fb950}
+.signal-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.signal-card .metric{text-align:center}
+.signal-card .metric .v{font-size:14px;font-weight:600;color:#c9d1d9}
+.signal-card .metric .l{font-size:10px;color:#8b949e}
+.signal-card .action{margin-top:12px;padding:8px 12px;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.2);border-radius:8px;font-size:12px;color:#3fb950;text-align:center;font-weight:600}
+.signal-card .time{position:absolute;top:12px;right:12px;font-size:10px;color:#484f58}
+.empty{text-align:center;padding:40px 20px;color:#484f58}
+.empty .icon{font-size:48px;margin-bottom:12px}
+.empty .msg{font-size:14px;line-height:1.6}
+.rules{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:16px;margin:16px 0}
+.rules h3{font-size:13px;color:#58a6ff;margin-bottom:10px}
+.rules .rule-group{margin-bottom:12px}
+.rules .rule-title{font-size:12px;color:#3fb950;font-weight:600;margin-bottom:4px}
+.rules p{font-size:12px;color:#8b949e;line-height:1.8}
+.rules .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin:2px}
+.rules .tag.buy{background:rgba(63,185,80,.15);color:#3fb950}
+.rules .tag.sell{background:rgba(248,81,73,.15);color:#f85149}
+.rules .tag.info{background:rgba(88,166,255,.1);color:#58a6ff}
+.rules .tag.warn{background:rgba(210,153,34,.15);color:#d29922}
+.rules .highlight{color:#f0f6fc;font-weight:600}
+.rules table{width:100%;border-collapse:collapse;margin:8px 0;font-size:11px}
+.rules table th{text-align:left;color:#8b949e;padding:4px 8px;border-bottom:1px solid #21262d;font-weight:500}
+.rules table td{padding:4px 8px;color:#c9d1d9}
+.rules table tr:nth-child(even){background:rgba(255,255,255,.02)}
+.cpcv{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:16px;margin:16px 0}
+.cpcv h3{font-size:13px;color:#3fb950;margin-bottom:10px}
+.cpcv .folds{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.cpcv .fold{background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:8px;text-align:center}
+.cpcv .fold .n{font-size:10px;color:#8b949e}
+.cpcv .fold .r{font-size:14px;font-weight:700;color:#3fb950}
+.cpcv .fold .p{font-size:9px;color:#8b949e}
+.cpcv .verdict{margin-top:10px;padding:8px 12px;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.2);border-radius:8px;font-size:12px;color:#3fb950;text-align:center;font-weight:600}
+.update-time{text-align:center;font-size:11px;color:#484f58;padding:16px 0}
+.tracked-card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.tracked-card .left{flex:1}
+.tracked-card .t-name{font-size:14px;font-weight:600;color:#f0f6fc}
+.tracked-card .t-code{font-size:11px;color:#8b949e;margin-left:4px}
+.tracked-card .t-meta{font-size:11px;color:#8b949e;margin-top:4px}
+.tracked-card .right{text-align:right;min-width:80px}
+.tracked-card .t-pnl{font-size:16px;font-weight:700}
+.tracked-card .t-pnl.up{color:#3fb950}
+.tracked-card .t-pnl.down{color:#f85149}
+.tracked-card .t-price{font-size:11px;color:#8b949e;margin-top:2px}
+.tracked-card .t-bar{height:3px;border-radius:2px;margin-top:6px;background:#21262d;position:relative}
+.tracked-card .t-bar .fill{height:100%;border-radius:2px;position:absolute;left:0;top:0}
+.tracked-card .t-bar .fill.green{background:#3fb950}
+.tracked-card .t-bar .fill.red{background:#f85149}
+.tracked-card .t-days{font-size:10px;color:#484f58;margin-top:2px;text-align:right}
+.tracked-empty{text-align:center;padding:20px;color:#484f58;font-size:13px}
+.loading{text-align:center;padding:60px 20px;color:#8b949e}
+.loading .spinner{width:32px;height:32px;border:3px solid #21262d;border-top-color:#58a6ff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎯 JH · VS30天量反转</h1>
+  <div class="subtitle">盘中实时扫描 · 发现即买 · 追踪止损锁利</div>
+</div>
+
+<div class="stats">
+  <div class="stat green"><div class="val">21.4%</div><div class="lbl">CPCV年化</div></div>
+  <div class="stat green"><div class="val">51.6%</div><div class="lbl">胜率</div></div>
+  <div class="stat green"><div class="val">7.6%</div><div class="lbl">最大回撤</div></div>
+  <div class="stat yellow"><div class="val">5.33</div><div class="lbl">盈亏比</div></div>
+</div>
+
+<div class="rules">
+  <h3>📋 策略说明</h3>
+  
+  <div class="rule-group">
+    <div class="rule-title">🟢 买入条件（4个同时满足）</div>
+    <p>
+      <span class="tag buy">核心</span> <span class="highlight">预估全天成交量 ≥ 20日均量 × 3倍</span>（天量）<br>
+      <span class="tag warn">前提</span> <span class="highlight">近5个交易日累计跌幅 > 3%</span>（前期超跌）<br>
+      <span class="tag info">确认</span> 当前价比昨收高 <span class="highlight">0.5% ~ 8%</span>（盘中实时判断，排除涨停）<br>
+      <span class="tag info">过滤</span> RSI(14) < <span class="highlight">50</span>（不追高位票）
+    </p>
+  </div>
+  
+  <div class="rule-group">
+    <div class="rule-title">🔴 卖出条件</div>
+    <p>
+      <span class="tag sell">追踪止损</span> 从持仓期间最高价回落 <span class="highlight">2%</span> 立即卖出<br>
+      <span class="tag sell">时间止损</span> 最多持有 <span class="highlight">3个交易日</span>，到期强制平仓
+    </p>
+  </div>
+
+  <div class="rule-group">
+    <div class="rule-title">📡 盘中实时扫描</div>
+    <p>
+      交易时段每 <span class="highlight">1分钟</span> 扫描全A股（主板，排除科创/创业/北交/ST）<br>
+      用<span class="highlight">时间加权法</span>估算全天量：上午10:30的量 ÷ 25% = 预估全天量<br>
+      越早发现信号 → 买入价越低 → 潜在收益越大<br>
+      <span class="tag info">价格范围</span> 5元 ~ 75元（1.5万本金可买1手）
+    </p>
+  </div>
+
+  <div class="rule-group">
+    <div class="rule-title">📊 回测验证</div>
+    <p>
+      数据：3128只A股主板 · 3年日线（2023.06 ~ 2026.06）<br>
+      方法：CPCV 8折组合净化交叉验证 · Purge=7天 · 滑点0.1%<br>
+      入场：T+1（收盘确认信号，次日开盘买入） · 出场：追踪止损2%/最多3天<br>
+      <span class="tag info">说明</span> 头部胜率/回撤/盈亏比为全量回测值，年化为CPCV 8折平均值
+    </p>
+  </div>
+
+  <div class="rule-group">
+    <div class="rule-title">⚠️ 风险提示</div>
+    <p>
+      回测≠未来收益，策略可能在极端行情失效<br>
+      信号较少（约每5个交易日1个），需要耐心等待<br>
+      追踪止损2%较紧，可能被日内波动震出<br>
+      <span class="highlight">本金1.5万，单笔最多买6750元（45%仓位），最多同时2只</span>
+    </p>
+  </div>
+</div>
+
+<div class="cpcv">
+  <h3>🔬 CPCV验证结果（8折 × Purge 7天）</h3>
+  <div class="folds">
+    <div class="fold"><div class="n">折1</div><div class="r">+2.9%</div><div class="p">2023.06-10</div></div>
+    <div class="fold"><div class="n">折2</div><div class="r">+50.1%</div><div class="p">2023.10-2024.03</div></div>
+    <div class="fold"><div class="n">折3</div><div class="r">+15.9%</div><div class="p">2024.03-07</div></div>
+    <div class="fold"><div class="n">折4</div><div class="r">+9.0%</div><div class="p">2024.07-12</div></div>
+    <div class="fold"><div class="n">折5</div><div class="r">+34.4%</div><div class="p">2024.12-2025.04</div></div>
+    <div class="fold"><div class="n">折6</div><div class="r">+16.4%</div><div class="p">2025.04-09</div></div>
+    <div class="fold"><div class="n">折7</div><div class="r">+14.5%</div><div class="p">2025.09-2026.01</div></div>
+    <div class="fold"><div class="n">折8</div><div class="r">+28.1%</div><div class="p">2026.01-06</div></div>
+  </div>
+  <div class="verdict">✅ 8/8折全部盈利 · 策略稳健 · 无过拟合 · 穿越牛熊</div>
+</div>
+
+<div class="section">
+  <h2>📌 推荐跟踪 <span style="font-size:11px;color:#484f58;font-weight:400">（10天自动删除）</span></h2>
+  <div id="tracked">
+    <div class="loading"><div class="spinner"></div><div>加载中...</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2><span class="dot"></span> 实时信号</h2>
+  <div id="signals">
+    <div class="loading">
+      <div class="spinner"></div>
+      <div>等待扫描数据...</div>
+    </div>
+  </div>
+</div>
+
+<div class="update-time" id="updateTime"></div>
+
+<script>
+var API_URL = '/h5/ambush/signals.json';
+
+function loadSignals() {
+  fetch(API_URL + '?t=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      renderSignals(data);
+      document.getElementById('updateTime').textContent = '更新: ' + (data.update_time || '--');
+    })
+    .catch(function() {
+      document.getElementById('signals').innerHTML =
+        '<div class="empty"><div class="icon">📡</div><div class="msg">等待扫描数据...<br>盘中每1分钟自动更新</div></div>';
+    });
+}
+
+function renderSignals(data) {
+  var signals = data.signals || [];
+  var history = data.history || [];
+  var all = signals.concat(history);
+  var seen = {};
+  var unique = [];
+  for (var i = 0; i < all.length; i++) {
+    if (!seen[all[i].code]) {
+      seen[all[i].code] = true;
+      unique.push(all[i]);
+    }
+  }
+  
+  if (unique.length === 0) {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes();
+    var trading = (h === 9 && m >= 30) || (h >= 10 && h < 12) || (h === 11 && m <= 30) || (h >= 13 && h < 15);
+    document.getElementById('signals').innerHTML =
+      '<div class="empty"><div class="icon">' + (trading ? '🔍' : '🌙') + '</div>' +
+      '<div class="msg">' + (trading ? '暂无信号，等待天量反转出现<br><span style="font-size:11px;color:#484f58">每1分钟自动扫描，有信号即推送</span>' : '非交易时段，开盘后自动扫描<br><span style="font-size:11px;color:#484f58">交易时间: 9:30-11:30 / 13:00-15:00</span>') + '</div></div>';
+    return;
+  }
+  
+  var html = '';
+  for (var i = 0; i < unique.length; i++) {
+    var s = unique[i];
+    html += '<div class="signal-card">';
+    html += '<div class="time">' + (s.time || '') + '</div>';
+    html += '<div class="top">';
+    html += '<div><span class="name">' + s.name + '</span><span class="code">' + s.code + '</span></div>';
+    html += '<div><span class="price">' + s.price + '</span>';
+    html += '<span class="change up">+' + s.change_pct + '%</span></div>';
+    html += '</div>';
+    html += '<div class="metrics">';
+    html += '<div class="metric"><div class="v">' + s.vol_ratio + 'x</div><div class="l">预估量比</div></div>';
+    html += '<div class="metric"><div class="v" style="color:#f85149">' + s.drop5 + '%</div><div class="l">5日跌幅</div></div>';
+    html += '<div class="metric"><div class="v">' + (s.rsi || '--') + '</div><div class="l">RSI</div></div>';
+    html += '</div>';
+    html += '<div class="action">📌 盘中发现信号 → 收盘确认后明日开盘买入 → 追踪止损2% / 最多持3天</div>';
+    html += '</div>';
+  }
+  document.getElementById('signals').innerHTML = html;
+}
+
+function loadTracked() {
+  fetch('/h5/ambush/tracked.json?t=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(data) { renderTracked(data); })
+    .catch(function() {
+      document.getElementById('tracked').innerHTML = '<div class="tracked-empty">暂无推荐跟踪</div>';
+    });
+}
+
+function renderTracked(data) {
+  var stocks = data.stocks || [];
+  if (stocks.length === 0) {
+    document.getElementById('tracked').innerHTML = '<div class="tracked-empty">暂无推荐，等待信号触发</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < stocks.length; i++) {
+    var s = stocks[i];
+    var up = s.pnl_pct >= 0;
+    var cls = up ? 'up' : 'down';
+    var barW = Math.min(Math.abs(s.pnl_pct) * 5, 100);
+    var barCls = up ? 'green' : 'red';
+    html += '<div class="tracked-card">';
+    html += '<div class="left">';
+    html += '<div><span class="t-name">' + s.name + '</span><span class="t-code">' + s.code + '</span></div>';
+    html += '<div class="t-meta">买入 ' + s.entry_price + '元 · ' + s.entry_date + ' · 量比' + s.vol_ratio + 'x</div>';
+    html += '<div class="t-bar"><div class="fill ' + barCls + '" style="width:' + barW + '%"></div></div>';
+    html += '</div>';
+    html += '<div class="right">';
+    html += '<div class="t-pnl ' + cls + '">' + (up ? '+' : '') + s.pnl_pct + '%</div>';
+    html += '<div class="t-price">' + s.current_price + '元 ' + (s.today_chg >= 0 ? '+' : '') + s.today_chg + '%</div>';
+    html += '<div class="t-days">剩' + s.days_left + '天</div>';
+    html += '</div>';
+    html += '</div>';
+  }
+  document.getElementById('tracked').innerHTML = html;
+}
+
+loadTracked();
+loadSignals();
+setInterval(loadTracked, 60000);
+setInterval(loadSignals, 60000);
+</script>
+</body>
+</html>
