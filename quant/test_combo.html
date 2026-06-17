@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tab+自动渲染测试</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:14px;padding:12px}
+.card{background:#fff;border:0.5px solid #e5e5ea;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.glass-card{background:rgba(255,255,255,0.72);border:0.5px solid rgba(255,255,255,0.5);border-radius:14px;padding:14px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between}
+.stock-name{font-size:16px;font-weight:600}
+.stock-code{font-size:12px;color:#8e8e93}
+.stock-score{font-size:28px;font-weight:700;color:#007aff}
+.stock-price{font-size:18px;font-weight:600}
+.stock-change{font-size:13px;font-weight:500}
+.stock-change.up{color:#34c759}
+.stock-change.down{color:#ff3b30}
+.badge{position:absolute;top:12px;right:12px;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(0,122,255,0.08);color:#007aff}
+.stock-card{position:relative}
+.signal{display:inline-block;padding:4px 10px;border-radius:8px;font-size:12px;background:rgba(0,122,255,0.06);color:#007aff;margin:2px}
+.tabs{display:flex;gap:0;margin:12px 0}
+.tab{flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:500;color:#8e8e93;border-bottom:2px solid transparent;cursor:pointer}
+.tab.active{color:#007aff;border-bottom-color:#007aff}
+.hidden{display:none}
+.error{color:red;font-weight:bold}
+.success{color:green}
+#log{font-size:11px;margin-bottom:8px;max-height:200px;overflow-y:auto}
+</style>
+</head>
+<body>
+<h3>Tab+自动渲染测试</h3>
+<div id="log"></div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="recommend">实时推荐</div>
+  <div class="tab" data-tab="backtest">回测报告</div>
+</div>
+
+<div id="tab-recommend">
+  <div id="recList">等待加载...</div>
+</div>
+
+<div id="tab-backtest" class="hidden">
+  <div id="btStats">等待加载...</div>
+</div>
+
+<script>
+(function(){
+  const log = document.getElementById('log');
+  function addLog(msg, type) {
+    log.innerHTML += '<div class="' + (type||'') + '">' + msg + '</div>';
+    log.scrollTop = log.scrollHeight;
+  }
+  
+  let recData = null, btData = null;
+  
+  // Tab switching - 完全复制原页面逻辑
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function(){
+      addLog('点击: ' + this.dataset.tab);
+      
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      document.querySelectorAll('[id^="tab-"]').forEach(p => p.classList.add('hidden'));
+      document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
+      
+      // 关键：检查数据是否存在再渲染
+      if(this.dataset.tab === 'recommend' && recData) {
+        addLog('触发renderRecommend');
+        renderRecommend();
+      }
+      if(this.dataset.tab === 'backtest' && btData) {
+        addLog('触发renderBacktest');
+        renderBacktest();
+      }
+    });
+  });
+  
+  // Load data
+  addLog('加载推荐数据...');
+  fetch('data/alpha191_recommendations.json?t=' + Date.now())
+    .then(r => r.json())
+    .then(d => {
+      recData = d;
+      addLog('推荐数据OK: ' + d.top_picks.length + '只', 'success');
+      
+      // 关键：加载完成后自动渲染当前Tab
+      const activeTab = document.querySelector('.tab.active');
+      addLog('当前Tab: ' + activeTab.dataset.tab);
+      if(activeTab.dataset.tab === 'recommend') {
+        addLog('自动渲染recommend...');
+        renderRecommend();
+      }
+    })
+    .catch(e => addLog('推荐数据ERROR: ' + e.message, 'error'));
+  
+  addLog('加载回测数据...');
+  fetch('data/backtest_result.json?t=' + Date.now())
+    .then(r => r.json())
+    .then(d => {
+      btData = d;
+      addLog('回测数据OK: ' + d.daily_stats.length + '天', 'success');
+      
+      const activeTab = document.querySelector('.tab.active');
+      if(activeTab.dataset.tab === 'backtest') {
+        addLog('自动渲染backtest...');
+        renderBacktest();
+      }
+    })
+    .catch(e => addLog('回测数据ERROR: ' + e.message, 'error'));
+  
+  function renderRecommend(){
+    addLog('renderRecommend开始');
+    try {
+      if(!recData) { addLog('recData为空!', 'error'); return; }
+      
+      const container = document.getElementById('recList');
+      const stocks = recData.top_picks;
+      
+      let html = '<div class="glass-card"><div class="row"><div><span style="font-size:12px;color:#8e8e93">市场涨跌</span><div style="font-size:16px;font-weight:700;color:'+(recData.market_change>=0?'#34c759':'#ff3b30')+'">'+(recData.market_change>=0?'+':'')+recData.market_change+'%</div></div><div style="text-align:center"><span style="font-size:12px;color:#8e8e93">扫描</span><div style="font-size:16px;font-weight:700">'+recData.total_scanned+'</div></div><div style="text-align:center"><span style="font-size:12px;color:#8e8e93">候选</span><div style="font-size:16px;font-weight:700;color:#007aff">'+recData.total_candidates+'</div></div></div></div>';
+      
+      stocks.forEach((s, idx) => {
+        const chgClass = s.change >= 0 ? 'up' : 'down';
+        const chgSign = s.change >= 0 ? '+' : '';
+        
+        html += '<div class="card stock-card">';
+        html += '<div class="badge">#'+(idx+1)+'</div>';
+        html += '<div class="row"><div><div class="stock-name">'+s.name+'</div><div class="stock-code">'+s.code+'</div></div><div style="text-align:right"><div class="stock-score">'+s.score+'</div><div style="font-size:10px;color:#8e8e93">综合评分</div></div></div>';
+        html += '<div class="row" style="margin-top:8px"><div><div class="stock-price">¥'+s.price+'</div></div><div><span class="stock-change '+chgClass+'">'+chgSign+s.change+'%</span></div></div>';
+        
+        if(s.signals && s.signals.length){
+          html += '<div style="margin-top:8px">';
+          s.signals.forEach(sig => { html += '<span class="signal">'+sig+'</span>'; });
+          html += '</div>';
+        }
+        
+        html += '</div>';
+      });
+      
+      container.innerHTML = html;
+      addLog('renderRecommend完成', 'success');
+      
+    } catch(e) {
+      addLog('renderRecommend ERROR: ' + e.message, 'error');
+    }
+  }
+  
+  function renderBacktest(){
+    addLog('renderBacktest开始');
+    try {
+      if(!btData) { addLog('btData为空!', 'error'); return; }
+      
+      const container = document.getElementById('btStats');
+      let html = '<div class="card">回测期间: ' + btData.period + '</div>';
+      
+      btData.daily_stats.slice(0, 5).forEach(day => {
+        html += '<div class="card">';
+        html += '<div class="row"><div style="font-weight:500">'+day.date+'</div><div>选股'+day.picks_count+'只</div></div>';
+        html += '<div style="font-size:12px;color:#8e8e93">T+1均涨: '+day.t1_avg_return+'% | T+3均涨: '+day.t3_avg_return+'%</div>';
+        html += '</div>';
+      });
+      
+      container.innerHTML = html;
+      addLog('renderBacktest完成', 'success');
+      
+    } catch(e) {
+      addLog('renderBacktest ERROR: ' + e.message, 'error');
+    }
+  }
+})();
+</script>
+</body>
+</html>
