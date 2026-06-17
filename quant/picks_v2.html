@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>JH策略 v2 · CPCV验证版</title>
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--text2:#86868b;--text3:#aeaeb2;--line:#e5e5ea;--blue:#007aff;--green:#34c759;--red:#ff3b30;--orange:#ff9500;--purple:#af52de;--radius:14px;--shadow:0 1px 3px rgba(0,0,0,.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;font-size:15px;line-height:1.5}
+.header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);padding:14px 16px 10px}
+.header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.header h1 .badge{font-size:10px;font-weight:600;color:#fff;background:var(--blue);padding:2px 8px;border-radius:20px}
+.header .sub{font-size:11px;color:var(--text3);margin-top:3px}
+.header .updated{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* CPCV结果卡片 */
+.cpcv-card{margin:12px 16px;background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.cpcv-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.cpcv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cpcv-item{text-align:center;padding:10px 6px;background:var(--bg);border-radius:10px}
+.cpcv-item .num{font-size:28px;font-weight:800;line-height:1.1}
+.cpcv-item .label{font-size:10px;color:var(--text3);margin-top:4px}
+.verdict{display:inline-block;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-top:10px}
+.verdict.pass{background:rgba(52,199,89,.1);color:var(--green)}
+.verdict.edge{background:rgba(255,149,0,.1);color:var(--orange)}
+.verdict.fail{background:rgba(255,59,48,.1);color:var(--red)}
+
+/* 策略对比 */
+.compare-card{margin:12px 16px;background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.compare-title{font-size:14px;font-weight:700;margin-bottom:10px}
+.compare-table{width:100%;border-collapse:collapse;font-size:12px}
+.compare-table th{text-align:left;padding:6px 8px;color:var(--text3);font-weight:500;border-bottom:1px solid var(--line)}
+.compare-table td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.compare-table .better{color:var(--green);font-weight:700}
+.compare-table .worse{color:var(--red)}
+
+/* 改进列表 */
+.improve-card{margin:12px 16px;background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.improve-title{font-size:14px;font-weight:700;margin-bottom:10px}
+.improve-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.improve-item:last-child{border:none}
+.improve-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.improve-icon.cvar{background:rgba(175,82,222,.1)}
+.improve-icon.filter{background:rgba(0,122,255,.1)}
+.improve-icon.cost{background:rgba(255,149,0,.1)}
+.improve-icon.threshold{background:rgba(52,199,89,.1)}
+.improve-text{flex:1}
+.improve-text .title{font-size:13px;font-weight:600}
+.improve-text .desc{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* 组合收益图 */
+.combo-card{margin:12px 16px;background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.combo-title{font-size:14px;font-weight:700;margin-bottom:10px}
+.combo-bar{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px}
+.combo-bar .label{width:50px;color:var(--text3);text-align:right}
+.combo-bar .bar-wrap{flex:1;height:16px;background:var(--bg);border-radius:4px;position:relative;overflow:hidden}
+.combo-bar .bar{height:100%;border-radius:4px;transition:width .5s}
+.combo-bar .bar.green{background:var(--green)}
+.combo-bar .bar.red{background:var(--red)}
+.combo-bar .val{width:60px;font-weight:600;font-size:11px}
+
+/* 交易记录 */
+.trades-card{margin:12px 16px 80px;background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.trades-title{font-size:14px;font-weight:700;margin-bottom:10px}
+.trade-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}
+.trade-row:last-child{border:none}
+.trade-info{flex:1}
+.trade-info .name{font-weight:600;font-size:13px}
+.trade-info .meta{color:var(--text3);font-size:10px}
+.trade-pnl{font-weight:700;font-size:14px;min-width:60px;text-align:right}
+.trade-pnl.green{color:var(--green)}
+.trade-pnl.red{color:var(--red)}
+.trade-tag{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600;margin-left:6px}
+.tag-tp{background:rgba(52,199,89,.1);color:var(--green)}
+.tag-sl{background:rgba(255,59,48,.1);color:var(--red)}
+.tag-hold{background:rgba(255,149,0,.1);color:var(--orange)}
+
+/* 参数搜索 */
+.param-card{margin:12px 16px;background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.param-title{font-size:14px;font-weight:700;margin-bottom:10px}
+.param-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;border-bottom:1px solid var(--line)}
+.param-row:last-child{border:none}
+.param-row .best{background:rgba(52,199,89,.08);border-radius:6px;padding:2px 6px}
+
+.cta-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);padding:10px 16px;z-index:100;display:flex;gap:10px}
+.cta-btn{flex:1;padding:12px;border-radius:12px;border:none;font-size:13px;font-weight:600;cursor:pointer}
+.cta-btn.primary{background:var(--blue);color:#fff}
+.cta-btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--line)}
+
+.loading{text-align:center;padding:60px 20px;color:var(--text3)}
+@keyframes spin{to{transform:rotate(360deg)}}.spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h1>JH策略 v2 <span class="badge">CPCV验证</span></h1>
+  </div>
+  <div class="sub">CVaR动态止损 · 大盘过滤 · 交易成本修正 · 组合净化交叉验证</div>
+  <div class="updated" id="updateTime">加载中...</div>
+</div>
+
+<div id="app"><div class="loading"><div class="spinner"></div>正在加载...</div></div>
+
+<div class="cta-bar">
+  <button class="cta-btn secondary" onclick="scrollTo({top:0,behavior:'smooth'})">↑ 顶部</button>
+  <button class="cta-btn primary" onclick="loadData()">↻ 刷新</button>
+</div>
+
+<script>
+var D=null;
+function loadData(){
+  document.getElementById('app').innerHTML='<div class="loading"><div class="spinner"></div>正在加载...</div>';
+  fetch('data/v2/v2_results.json?t='+Date.now()).then(function(r){return r.json()}).then(function(d){D=d;render()}).catch(function(e){
+    document.getElementById('app').innerHTML='<div class="loading">❌ 加载失败<br><span style="font-size:12px">请先运行: python3 backtest_v2_cpcv.py</span></div>';
+  });
+}
+
+function render(){
+  if(!D)return;
+  document.getElementById('updateTime').textContent='更新 '+D.updated_at;
+  var h='';
+  
+  // CPCV结果
+  var cv=D.cpcv||{};
+  var vp=cv.verdict||'';
+  var vcls=vp.includes('可信')?'pass':vp.includes('边缘')?'edge':'fail';
+  var robPct=((cv.robustness||0)*100).toFixed(0);
+  
+  h+='<div class="cpcv-card">';
+  h+='<div class="cpcv-title">🔬 CPCV验证结果</div>';
+  h+='<div class="cpcv-grid">';
+  h+='<div class="cpcv-item"><div class="num" style="color:'+(robPct>=70?'var(--green)':robPct>=50?'var(--orange)':'var(--red)')+'">'+robPct+'%</div><div class="label">稳健性评分</div></div>';
+  h+='<div class="cpcv-item"><div class="num">'+(cv.profitable_combos||0)+'/'+(cv.total_combos||0)+'</div><div class="label">盈利组合</div></div>';
+  h+='<div class="cpcv-item"><div class="num" style="color:'+(cv.mean_return>0?'var(--green)':'var(--red)')+'">'+(cv.mean_return>0?'+':'')+cv.mean_return+'%</div><div class="label">平均收益</div></div>';
+  h+='</div>';
+  h+='<div style="text-align:center"><span class="verdict '+vcls+'">'+vp+'</span></div>';
+  h+='</div>';
+  
+  // v1 vs v2对比
+  h+='<div class="compare-card">';
+  h+='<div class="compare-title">📊 v1 vs v2 策略对比</div>';
+  h+='<table class="compare-table"><tr><th>指标</th><th>v1原版</th><th>v2优化</th></tr>';
+  var fb=D.full_backtest||{};
+  h+='<tr><td>稳健性</td><td class="worse">0%</td><td class="better">'+robPct+'%</td></tr>';
+  h+='<tr><td>止损方式</td><td>固定-4%</td><td class="better">SL-'+(D.params?D.params.sl:'6')+'%</td></tr>';
+  h+='<tr><td>大盘过滤</td><td>无</td><td class="better">中位数<-1.5%不买</td></tr>';
+  h+='<tr><td>评分门槛</td><td>≥15</td><td class="better">≥'+(D.params?D.params.min_score:'?')+'</td></tr>';
+  h+='<tr><td>交易成本</td><td>未计入</td><td class="better">佣金+印花税+滑点</td></tr>';
+  if(D.full_backtest&&D.full_backtest.trades_per_week)h+='<tr><td>交易频率</td><td>0.7笔/天</td><td class="better">'+D.full_backtest.trades_per_week+'笔/周</td></tr>';if(D.full_backtest&&D.full_backtest.avg_hold)h+='<tr><td>平均持仓</td><td>2天</td><td class="better">'+D.full_backtest.avg_hold+'天</td></tr>';h+='<tr><td>完整回测收益</td><td class="worse">-</td><td style="color:'+(fb.total_return>0?'var(--green)':'var(--red)')+'">'+(fb.total_return>0?'+':'')+(fb.total_return||0)+'%</td></tr>';
+  h+='<tr><td>完整回测胜率</td><td>-</td><td>'+(fb.win_rate||0)+'%</td></tr>';
+  h+='</table></div>';
+  
+  // 改进清单
+  h+='<div class="improve-card">';
+  h+='<div class="improve-title">🔧 v2优化项</div>';
+  var icons=['cvar','filter','cost','threshold'];
+  var items=[
+    ['CVaR动态止损','用近20日收益率计算条件风险价值，市场剧烈时收紧(3%)，平静时放宽(5%)'],
+    ['大盘状态过滤','全市场涨跌中位数<-1.5%时停止买入，避免系统性下跌中接刀'],
+    ['完整交易成本','万三佣金(最低5元)+千一印花税+0.5%滑点，每笔真实成本约0.3-0.5%'],
+    ['评分门槛提升','从≥15提升到≥'+(D.params?D.params.min_score:'20')+'，过滤低质量信号'],
+  ];
+  for(var i=0;i<items.length;i++){
+    h+='<div class="improve-item"><div class="improve-icon '+icons[i]+'">'+['📊','🛡️','💰','🎯'][i]+'</div>';
+    h+='<div class="improve-text"><div class="title">'+items[i][0]+'</div><div class="desc">'+items[i][1]+'</div></div></div>';
+  }
+  h+='</div>';
+  
+  // 组合收益分布
+  var combos=cv.combinations||[];
+  if(combos.length>0){
+    h+='<div class="combo-card">';
+    h+='<div class="combo-title">📊 CPCV各组合收益</div>';
+    var maxAbs=1;
+    for(var i=0;i<combos.length;i++){var a=Math.abs(combos[i].total_return||0);if(a>maxAbs)maxAbs=a;}
+    for(var i=0;i<combos.length;i++){
+      var c=combos[i];
+      if(!c.trades)continue;
+      var pct=((c.total_return||0)/maxAbs*100);
+      var isPos=c.total_return>=0;
+      h+='<div class="combo-bar">';
+      h+='<div class="label">组合'+(i+1)+'</div>';
+      h+='<div class="bar-wrap"><div class="bar '+(isPos?'green':'red')+'" style="width:'+Math.min(Math.abs(pct),100)+'%"></div></div>';
+      h+='<div class="val" style="color:'+(isPos?'var(--green)':'var(--red)')+'">'+(c.total_return>0?'+':'')+(c.total_return||0).toFixed(1)+'%</div>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  
+  // 诊断
+  if(D.diagnosis){
+    h+='<div class="improve-card">';
+    h+='<div class="improve-title">🔍 策略诊断</div>';
+    h+='<div style="padding:10px;background:rgba(255,59,48,.05);border-radius:10px;margin-bottom:10px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">核心问题</div>';
+    h+='<div style="font-size:12px;color:var(--text2)">'+D.diagnosis.core_problem+'</div>';
+    h+='</div>';
+    h+='<div style="padding:10px;background:rgba(255,149,0,.05);border-radius:10px;margin-bottom:10px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:6px">v2改进效果</div>';
+    h+='<div style="font-size:12px;color:var(--text2)">'+D.diagnosis.v2_improvements_help+'</div>';
+    h+='</div>';
+    h+='<div style="padding:10px;background:rgba(0,122,255,.05);border-radius:10px">';
+    h+='<div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px">需要做什么</div>';
+    h+='<div style="font-size:12px;color:var(--text2)">'+D.diagnosis.needed+'</div>';
+    h+='</div>';
+    h+='</div>';
+  }
+  
+  // 参数搜索结果
+  var ps=D.cpcv&&D.cpcv.all_param_results?D.cpcv.all_param_results:[];
+  if(ps.length>0){
+    h+='<div class="param-card">';
+    h+='<div class="param-title">🔎 参数搜索结果（全部不通过）</div>';
+    for(var i=0;i<ps.length;i++){
+      var p=ps[i];
+      h+='<div class="param-row">';
+      h+='<span>TP+'+p.tp+'% 门槛≥'+p.score+'</span>';
+      h+='<span style="color:var(--red)">'+(p.avg_return>0?'+':'')+p.avg_return+'%</span>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  
+  // 最近交易
+  var trades=D.trades||[];
+  if(trades.length>0){
+    h+='<div class="trades-card">';
+    h+='<div class="trades-title">📋 最近交易 (最近'+trades.length+'笔)</div>';
+    var show=trades.slice(-30).reverse();
+    for(var i=0;i<show.length;i++){
+      var t=show[i];
+      var cls=t.return_pct>=0?'green':'red';
+      var tag=t.hit_type==='TP'?'<span class="trade-tag tag-tp">TP</span>':t.hit_type==='SL'?'<span class="trade-tag tag-sl">SL</span>':'<span class="trade-tag tag-hold">HOLD</span>';
+      h+='<div class="trade-row">';
+      h+='<div class="trade-info"><span class="name">'+t.code+'</span>'+tag+'<div class="meta">'+t.entry_date+'→'+t.exit_date+' · '+(t.hold_days||0)+'天 · SL-'+(t.sl_pct||4)+'%</div></div>';
+      h+='<span class="trade-pnl '+cls+'">'+(t.return_pct>0?'+':'')+t.return_pct+'%</span>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  
+  document.getElementById('app').innerHTML=h;
+}
+loadData();
+</script>
+</body>
+</html>
