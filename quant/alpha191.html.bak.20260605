@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>JH Alpha191 智能选股系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f2f2f7;--card:#ffffff;--border:#e5e5ea;--text:#1c1c1e;--sec:#8e8e93;
+  --green:#34c759;--red:#ff3b30;--blue:#007aff;--orange:#ff9500;
+  --glass:rgba(255,255,255,0.72);--shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+.header{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;padding:12px 16px 0}
+.header h1{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.header .sub{font-size:11px;color:var(--sec);margin-top:2px}
+.tabs{display:flex;gap:0;margin-top:10px}
+.tab{flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:500;color:var(--sec);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.content{padding:12px 14px}
+.section-title{font-size:15px;font-weight:600;margin:16px 0 10px;padding-left:2px}
+.section-title:first-child{margin-top:4px}
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
+.card-sm{padding:10px 12px}
+.glass-card{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:0.5px solid rgba(255,255,255,0.5);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 12px rgba(0,0,0,0.04)}
+.row{display:flex;align-items:center;justify-content:space-between}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;background:rgba(0,122,255,0.08);color:var(--blue);margin:2px 4px 2px 0}
+.tag.green{background:rgba(52,199,89,0.1);color:var(--green)}
+.tag.orange{background:rgba(255,149,0,0.1);color:var(--orange)}
+.tag.red{background:rgba(255,59,48,0.1);color:var(--red)}
+.tag.gray{background:rgba(142,142,147,0.1);color:var(--sec)}
+.bar-wrap{height:6px;background:rgba(0,0,0,0.04);border-radius:3px;overflow:hidden;margin:4px 0}
+.bar{height:100%;border-radius:3px;transition:width .6s ease}
+.bar.blue{background:linear-gradient(90deg,#007aff,#5ac8fa)}
+.bar.green{background:linear-gradient(90deg,#34c759,#30d158)}
+.bar.orange{background:linear-gradient(90deg,#ff9500,#ffcc00)}
+.stock-card{position:relative}
+.stock-name{font-size:16px;font-weight:600}
+.stock-code{font-size:12px;color:var(--sec)}
+.stock-score{font-size:28px;font-weight:700;color:var(--blue)}
+.stock-price{font-size:18px;font-weight:600}
+.stock-change{font-size:13px;font-weight:500}
+.stock-change.up{color:var(--green)}
+.stock-change.down{color:var(--red)}
+.factor-bar{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px}
+.factor-bar .fname{width:60px;text-align:right;color:var(--sec);flex-shrink:0}
+.factor-bar .fbar{flex:1;height:4px;background:rgba(0,0,0,0.04);border-radius:2px;overflow:hidden}
+.factor-bar .fbar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#007aff,#5ac8fa)}
+.factor-bar .fval{width:30px;font-size:11px;color:var(--sec);text-align:right}
+.signal-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.signal{padding:4px 10px;border-radius:8px;font-size:12px;background:rgba(0,122,255,0.06);color:var(--blue);border:0.5px solid rgba(0,122,255,0.15)}
+.ai-box{margin-top:10px;padding:10px 12px;background:rgba(0,122,255,0.04);border-radius:10px;border:0.5px solid rgba(0,122,255,0.1)}
+.ai-box .ai-title{font-size:12px;font-weight:600;color:var(--blue);margin-bottom:4px}
+.ai-box p{font-size:12px;color:var(--sec);line-height:1.6}
+.factor-cat{margin-bottom:14px}
+.factor-cat-title{font-size:14px;font-weight:600;padding:8px 12px;background:rgba(0,0,0,0.02);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.factor-item{padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,0.04);font-size:12px}
+.factor-item:last-child{border:none}
+.factor-formula{font-family:"SF Mono","Menlo",monospace;font-size:11px;color:var(--sec);background:rgba(0,0,0,0.02);padding:4px 8px;border-radius:4px;margin-top:3px;display:inline-block}
+.factor-mapping{display:flex;align-items:center;gap:6px;margin-top:6px;padding:6px 10px;background:rgba(52,199,89,0.04);border-radius:6px;font-size:11px;color:var(--green)}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat-item{text-align:center;padding:10px 6px;background:var(--card);border-radius:10px;border:0.5px solid var(--border)}
+.stat-val{font-size:20px;font-weight:700}
+.stat-label{font-size:11px;color:var(--sec);margin-top:2px}
+.daily-row{display:flex;align-items:center;padding:10px 0;border-bottom:0.5px solid rgba(0,0,0,0.04);font-size:12px;gap:8px}
+.daily-row:last-child{border:none}
+.daily-date{width:70px;font-weight:500;flex-shrink:0}
+.daily-cell{text-align:center;flex:1}
+.daily-cell .val{font-weight:600}
+.picks-table{width:100%;font-size:12px;border-collapse:collapse}
+.picks-table th{text-align:left;padding:6px 4px;color:var(--sec);font-weight:500;border-bottom:0.5px solid var(--border);font-size:11px}
+.picks-table td{padding:7px 4px;border-bottom:0.5px solid rgba(0,0,0,0.03)}
+.picks-table tr:last-child td{border:none}
+.weight-bar{display:flex;align-items:center;gap:6px;margin:4px 0}
+.weight-name{width:64px;text-align:right;font-size:12px;color:var(--sec);flex-shrink:0}
+.weight-fill{height:8px;border-radius:4px;background:linear-gradient(90deg,#007aff,#5ac8fa);transition:width .5s}
+.weight-val{font-size:11px;color:var(--sec);width:28px}
+.hidden{display:none}
+.empty-state{text-align:center;padding:40px 20px;color:var(--sec)}
+.empty-state .icon{font-size:36px;margin-bottom:8px}
+.compare-row{display:flex;gap:8px;margin-bottom:8px}
+.compare-box{flex:1;padding:10px;border-radius:10px;text-align:center;border:0.5px solid var(--border);background:var(--card)}
+.compare-box .label{font-size:11px;color:var(--sec)}
+.compare-box .val{font-size:16px;font-weight:700;margin-top:2px}
+.section-divider{height:0.5px;background:var(--border);margin:14px 0}
+.confidence{display:flex;gap:3px}
+.confidence .dot{width:6px;height:6px;border-radius:3px;background:var(--border)}
+.confidence .dot.on{background:var(--blue)}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.badge{position:absolute;top:12px;right:12px;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(0,122,255,0.08);color:var(--blue)}
+.factor-detail{margin-top:8px;padding:10px;background:rgba(0,0,0,0.02);border-radius:8px;font-size:12px}
+.factor-detail .fd-row{display:flex;justify-content:space-between;padding:3px 0}
+.factor-detail .fd-label{color:var(--sec)}
+.factor-detail .fd-val{font-weight:500}
+.loading{text-align:center;padding:60px;color:var(--sec)}
+.spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>JH Alpha191 智能选股系统</h1>
+  <div class="sub">Alpha191+JH混合因子(双因子体系) · <span id="headerDate">--</span></div>
+  <div class="tabs">
+    <div class="tab active" data-tab="overview">策略概览</div>
+    <div class="tab" data-tab="recommend">实时推荐</div>
+    <div class="tab" data-tab="factors">因子分析</div>
+    <div class="tab" data-tab="backtest">回测报告</div>
+  </div>
+</div>
+
+<!-- Tab1: 策略概览 -->
+<div id="tab-overview" class="content">
+  <!-- JH v2.2 核心指标 -->
+  <div class="section-title">📊 JH v2.2 核心指标</div>
+  <div class="stats-grid">
+    <div class="stat-item"><div class="stat-val" style="color:var(--green)">54.7%</div><div class="stat-label">T+1 胜率</div></div>
+    <div class="stat-item"><div class="stat-val" style="color:var(--green)">60.0%</div><div class="stat-label">T+3 胜率</div></div>
+    <div class="stat-item"><div class="stat-val" style="color:var(--blue)">+4.21%</div><div class="stat-label">T+3 均涨</div></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-item"><div class="stat-val" style="color:var(--red)">24.0%</div><div class="stat-label">止损率</div></div>
+    <div class="stat-item"><div class="stat-val">11</div><div class="stat-label">因子维度</div></div>
+    <div class="stat-item"><div class="stat-val">5轮</div><div class="stat-label">策略优化</div></div>
+  </div>
+
+  <!-- 因子权重配置 -->
+  <div class="section-title">⚖️ 因子权重配置</div>
+  <div class="card" id="weightCard">
+    <div class="loading"><div class="spinner"></div>加载中...</div>
+  </div>
+
+  <!-- Alpha191 因子分类 -->
+  <div class="section-title">🧬 Alpha191 因子分类</div>
+  <div class="glass-card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">国泰君安191因子体系</div>
+    <div style="font-size:12px;color:var(--sec);line-height:1.7">
+      2017年国泰君安研报提出的191个短周期阿尔法因子，基于A股价量特征构建。历史回测实现年化收益50.2%，最大回撤仅5.9%。因子形式与WorldQuant Alpha101类似，主要覆盖五大类。
+    </div>
+  </div>
+  <div id="alphaCategories">
+    <!-- 动量因子 -->
+    <div class="card factor-cat">
+      <div class="factor-cat-title">📈 动量因子（Momentum）</div>
+      <div class="factor-item"><div>Alpha#001: (rank(Ts_ArgMax(SignedPower(((returns < 0) ? stddev(returns, 20) : close), 2.), 5)) - 0.5)</div><div class="factor-formula">C = rank(Ts_ArgMax(Sign(ret², 20), 5)) - 0.5</div><div class="factor-mapping">↔ JH: 趋势向好(12%) + MACD金叉(13%)</div></div>
+      <div class="factor-item"><div>Alpha#002: (-1 * correlation(rank(delta(log(volume), 2)), rank(((close - open) / open)), 6))</div><div class="factor-formula">-corr(rank(ΔlogVol₂), rank(C-O/O), 6)</div><div class="factor-mapping">↔ JH: 温和放量(5%) + 涨幅控制(10%)</div></div>
+      <div class="factor-item"><div>Alpha#006: (-1 * correlation(open, volume, 10))</div><div class="factor-formula">-corr(open, volume, 10)</div><div class="factor-mapping">↔ JH: 异常换手(8%)</div></div>
+      <div class="factor-item"><div>Alpha#012: (sign(delta(volume, 1)) * (-1 * delta(close, 1)))</div><div class="factor-formula">sign(Δvol₁) × (-Δclose₁)</div><div class="factor-mapping">↔ JH: 放量(5%) + 涨幅控制(10%)</div></div>
+    </div>
+    <!-- 反转因子 -->
+    <div class="card factor-cat">
+      <div class="factor-cat-title">🔄 反转因子（Reversal）</div>
+      <div class="factor-item"><div>Alpha#003: (-1 * correlation(rank(open), rank(volume), 10))</div><div class="factor-formula">-corr(rank(open), rank(vol), 10)</div><div class="factor-mapping">↔ JH: RSI回升(15%)</div></div>
+      <div class="factor-item"><div>Alpha#020: (((-1 * rank(open - delay(high, 1))) * rank(open - delay(close, 1))) * rank(open - delay(low, 1)))</div><div class="factor-formula">-rank(O-H₁) × rank(O-C₁) × rank(O-L₁)</div><div class="factor-mapping">↔ JH: 突破位置(7%)</div></div>
+      <div class="factor-item"><div>Alpha#033: rank((-1 * ((1 - (open / close))^1)))</div><div class="factor-formula">rank(-(1 - O/C))</div><div class="factor-mapping">↔ JH: 涨幅控制(10%)</div></div>
+    </div>
+    <!-- 波动率因子 -->
+    <div class="card factor-cat">
+      <div class="factor-cat-title">📉 波动率因子（Volatility）</div>
+      <div class="factor-item"><div>Alpha#010: rank(delta(((close < delay(close,1)) ? stddev(close,20) : close), 5))</div><div class="factor-formula">rank(Δ(if C<C₁ then σ₂₀(C) else C, 5))</div><div class="factor-mapping">↔ JH: 布林收窄(4%)</div></div>
+      <div class="factor-item"><div>Alpha#044: (-1 * correlation(high, rank(volume), 5))</div><div class="factor-formula">-corr(high, rank(vol), 5)</div><div class="factor-mapping">↔ JH: 均线粘合(10%)</div></div>
+      <div class="factor-item"><div>Alpha#025: rank(((((-1 * returns) * adv20) * vwap) * (high - close)))</div><div class="factor-formula">rank(-ret × ADV20 × vwap × (H-C))</div><div class="factor-mapping">↔ JH: 布林收窄(4%) + 趋势(12%)</div></div>
+    </div>
+    <!-- 流动性因子 -->
+    <div class="card factor-cat">
+      <div class="factor-cat-title">💧 流动性因子（Liquidity）</div>
+      <div class="factor-item"><div>Alpha#005: (-1 * TSMax(correlation(TSMean(volume,10), TSMean(close,10), 5), 3))</div><div class="factor-formula">-TsMax(corr(ADV₁₀, MA₁₀, 5), 3)</div><div class="factor-mapping">↔ JH: 异常换手(8%) + 温和放量(5%)</div></div>
+      <div class="factor-item"><div>Alpha#008: (-1 * rank(((sum(open, 5) * sum(returns, 5)) - delay((sum(open, 5) * sum(returns, 5)), 10))))</div><div class="factor-formula">rank(-Δ₁₀(ΣO₅ × Σret₅))</div><div class="factor-mapping">↔ JH: 站上均线(8%)</div></div>
+      <div class="factor-item"><div>Alpha#054: ((-1 * ((low - close) * (open^5))) / ((low - high) * (close^5)))</div><div class="factor-formula">-(L-C)×O⁵ / ((L-H)×C⁵)</div><div class="factor-mapping">↔ JH: 突破位置(7%) + 涨幅控制(10%)</div></div>
+    </div>
+    <!-- 技术因子 -->
+    <div class="card factor-cat">
+      <div class="factor-cat-title">⚙️ 技术因子（Technical）</div>
+      <div class="factor-item"><div>Alpha#041: (((high * low)^0.5) - vwap)</div><div class="factor-formula">√(H×L) - vwap</div><div class="factor-mapping">↔ JH: 均线粘合(10%) + 均线多头(3%)</div></div>
+      <div class="factor-item"><div>Alpha#042: (rank((vwap - close)) / rank((vwap + close)))</div><div class="factor-formula">rank(vwap-C) / rank(vwap+C)</div><div class="factor-mapping">↔ JH: 站上均线(8%)</div></div>
+      <div class="factor-item"><div>Alpha#053: (-1 * delta((((close - low) - (high - close)) / (close - low)), 9))</div><div class="factor-formula">-Δ₉((C-L)-(H-C))/(C-L)</div><div class="factor-mapping">↔ JH: 突破位置(7%) + RSI回升(15%)</div></div>
+      <div class="factor-item"><div>Alpha#060: (-1 * rank(((2*scale(rank(argmax(close,10))) - scale(rank(argmin(close,10)))) - scale(rank(delta(volume,1))))))</div><div class="factor-formula">-(2×rank(argmax₁₀) - rank(argmin₁₀) - rank(Δvol₁))</div><div class="factor-mapping">↔ JH: MACD金叉(13%) + 趋势(12%)</div></div>
+    </div>
+  </div>
+
+  <!-- 对比说明 -->
+  <div class="section-title">🔗 体系对比</div>
+  <div class="glass-card">
+    <div style="font-size:12px;line-height:1.8">
+      <div class="compare-row">
+        <div class="compare-box"><div class="label">Alpha191</div><div class="val">191因子</div></div>
+        <div class="compare-box"><div class="label">JH v2.2</div><div class="val">11因子</div></div>
+      </div>
+      <div style="margin-top:8px;color:var(--sec)">
+        <b>Alpha191</b>侧重量价统计关系，因子数量多但计算复杂，适合机构高频；<br>
+        <b>JH v2.2</b>精选11个核心技术因子，每个因子经5轮实战优化，胜率更稳定，适合中小资金短线操作。<br><br>
+        JH v2.2从Alpha191中提取了关键因子思想：MACD/RSI对应动量类因子，均线粘合/布林收窄对应波动率类因子，放量/异常换手对应流动性类因子，实现了"少因子高效率"的实战化改造。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab2: 实时推荐 -->
+<div id="tab-recommend" class="content hidden">
+  <div class="section-title">🎯 今日推荐 · <span id="recDate">--</span></div>
+  <div id="recList"><div class="loading"><div class="spinner"></div>加载推荐数据...</div></div>
+</div>
+
+<!-- Tab3: 因子分析 -->
+<div id="tab-factors" class="content hidden">
+  <div class="section-title">📊 因子有效性分析</div>
+  <div id="factorAnalysis"><div class="loading"><div class="spinner"></div>加载因子数据...</div></div>
+</div>
+
+<!-- Tab4: 回测报告 -->
+<div id="tab-backtest" class="content hidden">
+  <div class="section-title">📈 回测报告 · <span id="btPeriod">--</span></div>
+  <div id="btStats"></div>
+  <div class="section-title" style="margin-top:16px">📅 每日表现</div>
+  <div id="btDaily"></div>
+  <div class="section-title" style="margin-top:16px">🏆 回测个股明细</div>
+  <div id="btPicks"></div>
+</div>
+
+<script>
+(function(){
+  const BASE = (function(){ var s = document.currentScript || document.querySelector('script'); return s ? s.src.replace(/\/[^\/]*$/, '') : ''; })();
+  let recData = null, btData = null;
+
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('[id^="tab-"]').forEach(p => p.classList.add('hidden'));
+      document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
+      if(this.dataset.tab === 'recommend' && recData) renderRecommend();
+      if(this.dataset.tab === 'factors' && recData) renderFactors();
+      if(this.dataset.tab === 'backtest' && btData) renderBacktest();
+    });
+  });
+
+  // Load data - use relative path since served from same nginx
+  fetch('data/alpha191_recommendations.json').then(r=>r.json()).then(d=>{
+    recData = d;
+    document.getElementById('headerDate').textContent = d.date + ' ' + d.time;
+    renderWeights(d.weights, d.weight_names);
+  }).catch(()=>{
+    document.getElementById('weightCard').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div>无法加载推荐数据</div>';
+  });
+
+  fetch('data/backtest_result.json').then(r=>r.json()).then(d=>{
+    btData = d;
+  }).catch(()=>{});
+
+  function renderWeights(weights, names){
+    if(!weights) return;
+    const maxW = Math.max(...Object.values(weights));
+    let html = '';
+    const sorted = Object.entries(weights).sort((a,b)=>b[1]-a[1]);
+    sorted.forEach(([k,v])=>{
+      const pct = (v / maxW * 100).toFixed(0);
+      const name = names[k] || k;
+      html += '<div class="weight-bar"><div class="weight-name">'+name+'</div><div style="flex:1"><div class="bar-wrap"><div class="weight-fill" style="width:'+pct+'%"></div></div></div><div class="weight-val">'+v+'%</div></div>';
+    });
+    document.getElementById('weightCard').innerHTML = html;
+  }
+
+  function renderRecommend(){
+    if(!recData) return;
+    const container = document.getElementById('recList');
+    document.getElementById('recDate').textContent = recData.date;
+    const stocks = recData.top_picks && recData.top_picks.length ? recData.top_picks : recData.all_stocks;
+    if(!stocks || !stocks.length){
+      container.innerHTML = '<div class="empty-state"><div class="icon">📭</div>今日暂无推荐</div>';
+      return;
+    }
+    let html = '';
+    // Market overview
+    html += '<div class="glass-card"><div class="row"><div><span style="font-size:12px;color:var(--sec)">市场涨跌</span><div style="font-size:16px;font-weight:700;color:'+(recData.market_change>=0?'var(--green)':'var(--red)')+'">'+(recData.market_change>=0?'+':'')+recData.market_change+'%</div></div><div style="text-align:center"><span style="font-size:12px;color:var(--sec)">扫描</span><div style="font-size:16px;font-weight:700">'+recData.total_scanned+'</div></div><div style="text-align:center"><span style="font-size:12px;color:var(--sec)">候选</span><div style="font-size:16px;font-weight:700;color:var(--blue)">'+recData.total_candidates+'</div></div><div style="text-align:right"><span style="font-size:12px;color:var(--sec)">耗时</span><div style="font-size:16px;font-weight:700">'+recData.elapsed_seconds+'s</div></div></div></div>';
+
+    stocks.forEach((s, idx) => {
+      const chgClass = s.change >= 0 ? 'up' : 'down';
+      const chgSign = s.change >= 0 ? '+' : '';
+      html += '<div class="card stock-card">';
+      html += '<div class="badge">#'+(idx+1)+'</div>';
+      html += '<div class="row"><div><div class="stock-name">'+s.name+'</div><div class="stock-code">'+s.code+'</div></div><div style="text-align:right"><div class="stock-score">'+s.score+'</div><div style="font-size:10px;color:var(--sec)">综合评分</div></div></div>';
+      html += '<div class="row" style="margin-top:8px"><div><div class="stock-price">¥'+s.price+'</div></div><div><span class="stock-change '+chgClass+'">'+chgSign+s.change+'%</span></div></div>';
+      
+      // Signals
+      if(s.signals && s.signals.length){
+        html += '<div class="signal-list">';
+        s.signals.forEach(sig => { html += '<span class="signal">'+sig+'</span>'; });
+        html += '</div>';
+      }
+      
+      // Factors
+      if(s.factors){
+        const maxF = Math.max(...Object.values(s.factors));
+        html += '<div style="margin-top:10px">';
+        Object.entries(s.factors).forEach(([k,v])=>{
+          const pct = Math.abs(v) / maxF * 100;
+          const color = v >= 0 ? 'blue' : 'orange';
+          html += '<div class="factor-bar"><div class="fname">'+k+'</div><div class="fbar"><div class="fbar-fill '+color+'" style="width:'+pct+'%"></div></div><div class="fval">'+v.toFixed(1)+'</div></div>';
+        });
+        html += '</div>';
+      }
+
+      // Indicators detail
+      if(s.indicators){
+        html += '<div class="factor-detail">';
+        const ind = s.indicators;
+        if(ind.ma5) html += '<div class="fd-row"><span class="fd-label">MA5</span><span class="fd-val">'+ind.ma5+'</span></div>';
+        if(ind.ma10) html += '<div class="fd-row"><span class="fd-label">MA10</span><span class="fd-val">'+ind.ma10+'</span></div>';
+        if(ind.ma20) html += '<div class="fd-row"><span class="fd-label">MA20</span><span class="fd-val">'+ind.ma20+'</span></div>';
+        if(ind.rsi14) html += '<div class="fd-row"><span class="fd-label">RSI14</span><span class="fd-val">'+ind.rsi14+'</span></div>';
+        if(ind.macd !== undefined) html += '<div class="fd-row"><span class="fd-label">MACD</span><span class="fd-val">'+ind.macd+'</span></div>';
+        if(ind.vol_ratio) html += '<div class="fd-row"><span class="fd-label">量比</span><span class="fd-val">'+ind.vol_ratio+'</span></div>';
+        if(ind.boll_width) html += '<div class="fd-row"><span class="fd-label">布林宽</span><span class="fd-val">'+ind.boll_width+'</span></div>';
+        if(ind.ma_convergence !== undefined) html += '<div class="fd-row"><span class="fd-label">均线粘合度</span><span class="fd-val">'+ind.ma_convergence+'</span></div>';
+        html += '</div>';
+      }
+
+      // Alpha data
+      if(s.alpha){
+        html += '<div class="factor-detail" style="background:rgba(0,122,255,0.03);margin-top:6px">';
+        const a = s.alpha;
+        html += '<div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:4px">Alpha191 指标</div>';
+        if(a.mom_5d !== undefined) html += '<div class="fd-row"><span class="fd-label">5日动量</span><span class="fd-val">'+a.mom_5d+'%</span></div>';
+        if(a.mom_10d !== undefined) html += '<div class="fd-row"><span class="fd-label">10日动量</span><span class="fd-val">'+a.mom_10d+'%</span></div>';
+        if(a.mom_20d !== undefined) html += '<div class="fd-row"><span class="fd-label">20日动量</span><span class="fd-val">'+a.mom_20d+'%</span></div>';
+        if(a.trend_score !== undefined) html += '<div class="fd-row"><span class="fd-label">趋势得分</span><span class="fd-val">'+a.trend_score+'</span></div>';
+        if(a.breakout !== undefined) html += '<div class="fd-row"><span class="fd-label">突破度</span><span class="fd-val">'+a.breakout+'%</span></div>';
+        if(a.boll_pos !== undefined) html += '<div class="fd-row"><span class="fd-label">布林位置</span><span class="fd-val">'+a.boll_pos+'%</span></div>';
+        html += '</div>';
+      }
+
+      // Concepts
+      if(s.concepts && s.concepts.length){
+        html += '<div style="margin-top:8px">';
+        s.concepts.forEach(c => { html += '<span class="tag orange">'+c+'</span>'; });
+        html += '</div>';
+      }
+
+      // AI
+      if(s.ai && s.ai.ai_view){
+        html += '<div class="ai-box">';
+        html += '<div class="ai-title">🤖 AI 分析 · 信心指数</div>';
+        html += '<div class="confidence" style="margin:4px 0">';
+        for(let i=1;i<=5;i++) html += '<div class="dot '+(i<=s.ai.confidence?'on':'')+'"></div>';
+        html += '</div>';
+        html += '<p>'+s.ai.ai_view+'</p>';
+        if(s.ai.risk_tip) html += '<p style="margin-top:4px">⚠️ '+s.ai.risk_tip+'</p>';
+        html += '</div>';
+      }
+
+      // Risk tags
+      if(s.risk_tags && s.risk_tags.length){
+        html += '<div style="margin-top:8px">';
+        s.risk_tags.forEach(r => { html += '<span class="tag red">'+r+'</span>'; });
+        html += '</div>';
+      }
+
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function renderFactors(){
+    if(!recData) return;
+    const container = document.getElementById('factorAnalysis');
+    const weights = recData.weights;
+    const names = recData.weight_names;
+    if(!weights){ container.innerHTML = '<div class="empty-state">无因子数据</div>'; return; }
+    
+    const maxW = Math.max(...Object.values(weights));
+    const total = Object.values(weights).reduce((a,b)=>a+b, 0);
+    const sorted = Object.entries(weights).sort((a,b)=>b[1]-a[1]);
+    
+    // Overall effectiveness
+    let html = '<div class="glass-card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">因子权重分布</div><div style="font-size:12px;color:var(--sec);margin-bottom:10px">基于JH v2.2策略5轮优化，共11个因子维度，总权重100%</div>';
+    
+    // Visual bar chart
+    html += '<div style="height:24px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:12px">';
+    const colors = ['#007aff','#5ac8fa','#34c759','#ff9500','#ff3b30','#af52de','#ff2d55','#5856d6','#00c7be','#ff6482','#30b0c7'];
+    sorted.forEach(([k,v],i)=>{
+      const pct = (v/total*100).toFixed(1);
+      html += '<div style="width:'+pct+'%;background:'+colors[i%colors.length]+';position:relative" title="'+(names[k]||k)+': '+v+'%"></div>';
+    });
+    html += '</div>';
+    
+    sorted.forEach(([k,v],i)=>{
+      const name = names[k] || k;
+      const pct = (v / maxW * 100).toFixed(0);
+      const wpct = (v / total * 100).toFixed(1);
+      html += '<div style="display:flex;align-items:center;gap:8px;margin:6px 0">';
+      html += '<div style="width:8px;height:8px;border-radius:2px;background:'+colors[i%colors.length]+';flex-shrink:0"></div>';
+      html += '<div style="width:64px;font-size:12px;font-weight:500">'+name+'</div>';
+      html += '<div style="flex:1"><div class="bar-wrap" style="height:8px"><div class="bar" style="width:'+pct+'%;background:'+colors[i%colors.length]+'"></div></div></div>';
+      html += '<div style="width:56px;text-align:right;font-size:12px"><b>'+v+'%</b> <span style="color:var(--sec);font-size:10px">('+wpct+'%)</span></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    
+    // Factor categories mapping to Alpha191
+    html += '<div class="section-title" style="margin-top:18px">🔬 JH因子 × Alpha191 映射</div>';
+    
+    const categories = [
+      {name:'动量类因子',icon:'📈',color:'#007aff',items:[
+        {jh:'MACD金叉',w:weights.macd_cross||13,a191:'Alpha#001,#012',desc:'价格趋势动量与MACD信号的复合判断'},
+        {jh:'趋势向好',w:weights.trend||12,a191:'Alpha#025,#060',desc:'多周期均线排列方向确认'},
+        {jh:'RSI回升',w:weights.rsi_recovery||15,a191:'Alpha#003,#033',desc:'超卖反弹信号捕捉'}
+      ]},
+      {name:'波动率类因子',icon:'📉',color:'#ff9500',items:[
+        {jh:'均线粘合',w:weights.ma_convergence||10,a191:'Alpha#044',desc:'均线间距收窄程度量化'},
+        {jh:'布林收窄',w:weights.boll_squeeze||4,a191:'Alpha#010,#025',desc:'布林带宽度压缩识别变盘'},
+        {jh:'均线多头',w:weights.ma_bull||3,a191:'Alpha#041',desc:'均线多头排列确认'}
+      ]},
+      {name:'流动性类因子',icon:'💧',color:'#34c759',items:[
+        {jh:'温和放量',w:weights.volume_amp||5,a191:'Alpha#005,#008',desc:'成交量温和放大信号'},
+        {jh:'异常换手',w:weights.abn_turn||8,a191:'Alpha#006,#002',desc:'换手率异常波动监控'}
+      ]},
+      {name:'价格结构因子',icon:'⚙️',color:'#af52de',items:[
+        {jh:'站上均线',w:weights.above_ma||8,a191:'Alpha#042',desc:'价格突破关键均线位置'},
+        {jh:'突破位置',w:weights.breakout_pos||7,a191:'Alpha#053,#020',desc:'价格在区间中的相对位置'},
+        {jh:'涨幅控制',w:weights.change_ctrl||10,a191:'Alpha#054,#012',desc:'单日涨幅合理区间控制'}
+      ]}
+    ];
+    
+    categories.forEach(cat => {
+      html += '<div class="card">';
+      html += '<div class="factor-cat-title">'+cat.icon+' '+cat.name+'</div>';
+      cat.items.forEach(item => {
+        const pct = (item.w / maxW * 100).toFixed(0);
+        html += '<div style="padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,0.04)">';
+        html += '<div class="row"><div style="font-size:13px;font-weight:500">'+item.jh+'</div><div style="font-size:14px;font-weight:700;color:'+cat.color+'">'+item.w+'%</div></div>';
+        html += '<div style="font-size:11px;color:var(--sec);margin-top:2px">'+item.desc+'</div>';
+        html += '<div class="bar-wrap" style="margin:4px 0"><div class="bar" style="width:'+pct+'%;background:'+cat.color+'"></div></div>';
+        html += '<div style="font-size:11px;color:var(--sec)">Alpha191对应: '+item.a191+'</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    
+    // Backtest factor effectiveness from actual data
+    if(btData && btData.daily_stats){
+      html += '<div class="section-title" style="margin-top:18px">📊 因子实际表现（回测验证）</div>';
+      html += '<div class="glass-card">';
+      html += '<div style="font-size:12px;color:var(--sec);margin-bottom:10px">从回测数据中统计各因子出现频率与收益关系</div>';
+      
+      // Aggregate factor data from backtest
+      const factorStats = {};
+      btData.daily_stats.forEach(day => {
+        day.picks.forEach(pick => {
+          if(pick.factors){
+            Object.entries(pick.factors).forEach(([f,v])=>{
+              if(!factorStats[f]) factorStats[f] = {count:0, totalT1:0, totalT3:0, wins:0};
+              factorStats[f].count++;
+              if(pick.t1_return !== undefined) factorStats[f].totalT1 += pick.t1_return;
+              if(pick.t3_return !== undefined) factorStats[f].totalT3 += pick.t3_return;
+              if(pick.t3_return > 0) factorStats[f].wins++;
+            });
+          }
+        });
+      });
+      
+      const sortedFactors = Object.entries(factorStats).sort((a,b)=>b[1].count - a[1].count);
+      const maxCount = Math.max(...sortedFactors.map(x=>x[1].count));
+      
+      sortedFactors.forEach(([name, stat]) => {
+        const avgT1 = (stat.totalT1 / stat.count).toFixed(2);
+        const avgT3 = (stat.totalT3 / stat.count).toFixed(2);
+        const winRate = ((stat.wins / stat.count) * 100).toFixed(0);
+        const pct = (stat.count / maxCount * 100).toFixed(0);
+        const t1Color = avgT1 >= 0 ? 'var(--green)' : 'var(--red)';
+        const t3Color = avgT3 >= 0 ? 'var(--green)' : 'var(--red)';
+        html += '<div style="padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,0.04)">';
+        html += '<div class="row"><div style="font-size:13px;font-weight:500">'+name+'</div><div style="font-size:11px;color:var(--sec)">'+stat.count+'次出现</div></div>';
+        html += '<div class="bar-wrap"><div class="bar blue" style="width:'+pct+'%"></div></div>';
+        html += '<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px">';
+        html += '<span>T+1均: <b style="color:'+t1Color+'">'+(avgT1>=0?'+':'')+avgT1+'%</b></span>';
+        html += '<span>T+3均: <b style="color:'+t3Color+'">'+(avgT3>=0?'+':'')+avgT3+'%</b></span>';
+        html += '<span>T+3胜率: <b>'+winRate+'%</b></span>';
+        html += '</div></div>';
+      });
+      html += '</div></div>';
+    }
+    
+    container.innerHTML = html;
+  }
+
+  function renderBacktest(){
+    if(!btData) {
+      document.getElementById('btStats').innerHTML = '<div class="empty-state"><div class="icon">📊</div>正在加载回测数据...</div>';
+      return;
+    }
+    
+    document.getElementById('btPeriod').textContent = btData.period;
+    
+    // Aggregate stats
+    let totalPicks = 0, totalT1 = 0, totalT3 = 0, t1Wins = 0, t3Wins = 0, stopLosses = 0, takeProfits = 0;
+    let allT1 = [], allT3 = [], allMax = [], allMin = [];
+    
+    btData.daily_stats.forEach(day => {
+      totalPicks += day.picks_count;
+      totalT1 += day.t1_avg_return * day.picks_count;
+      totalT3 += day.t3_avg_return * day.picks_count;
+      stopLosses += day.stop_losses;
+      takeProfits += day.take_profits;
+      day.picks.forEach(p => {
+        if(p.t1_return !== undefined){ allT1.push(p.t1_return); if(p.t1_return > 0) t1Wins++; }
+        if(p.t3_return !== undefined){ allT3.push(p.t3_return); if(p.t3_return > 0) t3Wins++; }
+        if(p.max_return !== undefined) allMax.push(p.max_return);
+        if(p.min_return !== undefined) allMin.push(p.min_return);
+      });
+    });
+    
+    const avgT1 = (totalT1 / totalPicks).toFixed(2);
+    const avgT3 = (totalT3 / totalPicks).toFixed(2);
+    const t1WR = ((t1Wins / totalPicks) * 100).toFixed(1);
+    const t3WR = ((t3Wins / totalPicks) * 100).toFixed(1);
+    const bestMax = Math.max(...allMax).toFixed(2);
+    const worstMin = Math.min(...allMin).toFixed(2);
+    const avgMax = (allMax.reduce((a,b)=>a+b,0)/allMax.length).toFixed(2);
+    
+    let html = '<div class="glass-card">';
+    html += '<div class="stats-grid" style="grid-template-columns:repeat(2,1fr)">';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--blue)">'+totalPicks+'</div><div class="stat-label">总推荐数</div></div>';
+    html += '<div class="stat-item"><div class="stat-val">'+btData.daily_stats.length+'</div><div class="stat-label">交易日</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:'+(avgT1>=0?'var(--green)':'var(--red)')+'">'+(avgT1>=0?'+':'')+avgT1+'%</div><div class="stat-label">T+1 均涨</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:'+(avgT3>=0?'var(--green)':'var(--red)')+'">'+(avgT3>=0?'+':'')+avgT3+'%</div><div class="stat-label">T+3 均涨</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">'+t1WR+'%</div><div class="stat-label">T+1 胜率</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">'+t3WR+'%</div><div class="stat-label">T+3 胜率</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">+'+bestMax+'%</div><div class="stat-label">最佳收益</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--red)">'+worstMin+'%</div><div class="stat-label">最差收益</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">+'+avgMax+'%</div><div class="stat-label">平均最高</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--orange)">'+stopLosses+'</div><div class="stat-label">止损次数</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">'+takeProfits+'</div><div class="stat-label">止盈次数</div></div>';
+    html += '<div class="stat-item"><div class="stat-val">v'+btData.version+'</div><div class="stat-label">版本</div></div>';
+    html += '</div></div>';
+    
+    // T+1 vs T+3 distribution
+    html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">收益分布</div>';
+    const buckets = {lt_n5:{t1:0,t3:0},n5_n2:{t1:0,t3:0},n2_0:{t1:0,t3:0},p0_p2:{t1:0,t3:0},p2_p5:{t1:0,t3:0},gt5:{t1:0,t3:0}};
+    allT1.forEach(v => {
+      if(v<-5) buckets.lt_n5.t1++; else if(v<-2) buckets.n5_n2.t1++; else if(v<0) buckets.n2_0.t1++;
+      else if(v<2) buckets.p0_p2.t1++; else if(v<5) buckets.p2_p5.t1++; else buckets.gt5.t1++;
+    });
+    allT3.forEach(v => {
+      if(v<-5) buckets.lt_n5.t3++; else if(v<-2) buckets.n5_n2.t3++; else if(v<0) buckets.n2_0.t3++;
+      else if(v<2) buckets.p0_p2.t3++; else if(v<5) buckets.p2_p5.t3++; else buckets.gt5.t3++;
+    });
+    const distLabels = ['<-5%','-5~-2%','-2~0%','0~2%','2~5%','>5%'];
+    const distKeys = ['lt_n5','n5_n2','n2_0','p0_p2','p2_p5','gt5'];
+    const distColors = ['#ff3b30','#ff9500','#ffcc00','#34c759','#007aff','#5856d6'];
+    const maxDist = Math.max(...distKeys.map(k=>Math.max(buckets[k].t1, buckets[k].t3)));
+    distKeys.forEach((k,i)=>{
+      const t1p = maxDist ? (buckets[k].t1/maxDist*100) : 0;
+      const t3p = maxDist ? (buckets[k].t3/maxDist*100) : 0;
+      html += '<div style="display:flex;align-items:center;gap:6px;margin:4px 0;font-size:11px">';
+      html += '<div style="width:50px;text-align:right;color:var(--sec)">'+distLabels[i]+'</div>';
+      html += '<div style="flex:1;display:flex;gap:2px"><div style="flex:1"><div class="bar-wrap" style="height:6px"><div style="width:'+t1p+'%;height:100%;background:'+distColors[i]+';border-radius:3px"></div></div></div><div style="flex:1"><div class="bar-wrap" style="height:6px"><div style="width:'+t3p+'%;height:100%;background:'+distColors[i]+';border-radius:3px;opacity:0.5"></div></div></div></div>';
+      html += '<div style="width:50px;font-size:10px"><span style="color:var(--blue)">'+buckets[k].t1+'</span> / <span style="color:var(--sec)">'+buckets[k].t3+'</span></div>';
+      html += '</div>';
+    });
+    html += '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:6px;font-size:10px"><span style="color:var(--blue)">■ T+1</span><span style="color:var(--sec)">■ T+3</span></div>';
+    html += '</div>';
+    
+    document.getElementById('btStats').innerHTML = html;
+    
+    // Daily stats
+    let dailyHtml = '<div class="card">';
+    btData.daily_stats.forEach(day => {
+      const t1c = day.t1_avg_return >= 0 ? 'var(--green)' : 'var(--red)';
+      const t3c = day.t3_avg_return >= 0 ? 'var(--green)' : 'var(--red)';
+      dailyHtml += '<div class="daily-row">';
+      dailyHtml += '<div class="daily-date">'+day.date.slice(5)+'</div>';
+      dailyHtml += '<div class="daily-cell"><div class="val">'+day.picks_count+'</div><div style="font-size:10px;color:var(--sec)">选股</div></div>';
+      dailyHtml += '<div class="daily-cell"><div class="val" style="color:'+t1c+'">'+(day.t1_avg_return>=0?'+':'')+day.t1_avg_return+'%</div><div style="font-size:10px;color:var(--sec)">T+1</div></div>';
+      dailyHtml += '<div class="daily-cell"><div class="val" style="color:'+t3c+'">'+(day.t3_avg_return>=0?'+':'')+day.t3_avg_return+'%</div><div style="font-size:10px;color:var(--sec)">T+3</div></div>';
+      dailyHtml += '<div class="daily-cell"><div class="val">'+day.t1_win_rate+'%</div><div style="font-size:10px;color:var(--sec)">T1胜率</div></div>';
+      dailyHtml += '<div class="daily-cell"><div class="val">'+day.t3_win_rate+'%</div><div style="font-size:10px;color:var(--sec)">T3胜率</div></div>';
+      if(day.stop_losses > 0) dailyHtml += '<div style="font-size:10px;color:var(--red)">⛔'+day.stop_losses+'</div>';
+      dailyHtml += '</div>';
+    });
+    dailyHtml += '</div>';
+    document.getElementById('btDaily').innerHTML = dailyHtml;
+    
+    // Detailed picks
+    let picksHtml = '';
+    btData.daily_stats.forEach(day => {
+      picksHtml += '<div class="card"><div style="font-size:12px;font-weight:600;color:var(--sec);margin-bottom:8px">'+day.date+'</div>';
+      picksHtml += '<table class="picks-table"><tr><th>股票</th><th>评分</th><th>T+1</th><th>T+3</th><th>T+5</th><th>最高</th></tr>';
+      day.picks.forEach(p => {
+        const t1c = p.t1_return >= 0 ? 'var(--green)' : 'var(--red)';
+        const t3c = p.t3_return >= 0 ? 'var(--green)' : 'var(--red)';
+        const t5c = (p.t5_return||0) >= 0 ? 'var(--green)' : 'var(--red)';
+        const mc = (p.max_return||0) >= 0 ? 'var(--green)' : 'var(--red)';
+        picksHtml += '<tr>';
+        picksHtml += '<td><div style="font-weight:500">'+p.name+'</div><div style="font-size:10px;color:var(--sec)">'+p.code+'</div></td>';
+        picksHtml += '<td style="font-weight:600;color:var(--blue)">'+p.score+'</td>';
+        picksHtml += '<td style="color:'+t1c+';font-weight:500">'+(p.t1_return>=0?'+':'')+p.t1_return+'%</td>';
+        picksHtml += '<td style="color:'+t3c+';font-weight:500">'+(p.t3_return>=0?'+':'')+p.t3_return+'%</td>';
+        picksHtml += '<td style="color:'+t5c+';font-weight:500">'+((p.t5_return||0)>=0?'+':'')+(p.t5_return||0).toFixed(2)+'%</td>';
+        picksHtml += '<td style="color:'+mc+';font-weight:500">+'+p.max_return+'%</td>';
+        picksHtml += '</tr>';
+      });
+      picksHtml += '</table></div>';
+    });
+    document.getElementById('btPicks').innerHTML = picksHtml;
+  }
+})();
+</script>
+</body>
+</html>
