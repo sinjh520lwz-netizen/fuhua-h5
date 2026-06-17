@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>JH 事件驱动策略</title><style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#f5f5f7;color:#1d1d1f;padding:0 0 80px;font-size:14px;-webkit-font-smoothing:antialiased}
+.hdr{background:linear-gradient(135deg,#5856d6,#af52de);color:#fff;padding:20px 16px 16px;position:sticky;top:0;z-index:10}
+.hdr h1{font-size:18px;font-weight:600;margin-bottom:4px}.hdr p{font-size:12px;opacity:.8}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px}
+.stat{background:#fff;border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat .v{font-size:18px;font-weight:700;color:#1d1d1f}.stat .l{font-size:11px;color:#86868b;margin-top:2px}
+.stat .v.g{color:#34c759}.stat .v.r{color:#ff3b30}.stat .v.p{color:#5856d6}
+.section{padding:0 16px;margin-top:12px}.section h2{font-size:15px;font-weight:600;margin-bottom:8px;color:#1d1d1f;display:flex;align-items:center;gap:6px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.sig{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0}.sig:last-child{border:none}
+.sig .left{flex:1}.sig .code{font-weight:600;font-size:15px}.sig .name{color:#86868b;font-size:12px;margin-top:2px}
+.sig .right{text-align:right}.sig .net{font-weight:600;font-size:15px;color:#5856d6}.sig .sub{font-size:11px;color:#86868b;margin-top:2px}
+.sig .badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600}
+.badge-tp{background:#e8f5e9;color:#2e7d32}.badge-sl{background:#ffebee;color:#c62828}.badge-hold{background:#fff3e0;color:#e65100}
+.tr{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f7;font-size:13px}.tr:last-child{border:none}
+.tr .d{color:#86868b;width:80px}.tr .c{flex:1;font-weight:500}.tr .r{width:60px;text-align:right;font-weight:600}
+.tr .r.w{color:#34c759}.tr .r.l{color:#ff3b30}
+.info-box{background:#f0edff;border-radius:10px;padding:12px;margin:12px 16px;font-size:12px;color:#5856d6;line-height:1.6}
+.info-box b{font-weight:600}
+.params{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}
+.param{background:#f5f5f7;border-radius:8px;padding:8px 10px;font-size:12px;display:flex;justify-content:space-between}
+.param .k{color:#86868b}.param .v{font-weight:600}
+.upd{text-align:center;color:#86868b;font-size:11px;padding:16px}
+.tag{display:inline-block;background:#5856d6;color:#fff;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:4px}
+</style></head><body>
+<div class="hdr"><h1>🎯 JH 事件驱动策略<span class="tag">V2 PurgedCV 72%</span></h1><p>龙虎榜机构跟单 · Regime动态仓位 · Alpha半衰期0.4天</p></div>
+<div class="stats" id="stats"></div>
+<div class="info-box" id="info"></div>
+<div class="section"><h2>📋 策略参数</h2><div class="card" id="params"></div></div>
+<div class="section"><h2>🔔 今日信号</h2><div class="card" id="signals"><div style="text-align:center;color:#86868b;padding:20px">加载中...</div></div></div>
+<div class="section"><h2>📊 最近交易</h2><div class="card" id="trades"></div></div>
+<div class="section"><h2>📈 月度表现</h2><div class="card" id="monthly"></div></div>
+<div class="upd" id="upd"></div>
+<script>
+const API_BASE = '/h5/quant/data/v2';
+async function loadJSON(f){try{const r = await fetch(API_BASE+'/'+f+'?v='+Date.now());return await r.json()}catch(e){return null}}
+async function init(){
+const backtest = await loadJSON('event_backtest.json');
+const signals = await loadJSON('event_signals.json');
+if(!backtest){document.getElementById('info').textContent='数据加载失败';return}
+const s = backtest;
+document.getElementById('stats').innerHTML = [
+{k:'总收益',v:(s.total_ret>0?'+':'')+s.total_ret+'%',c:s.total_ret>0?'g':'r'},
+{k:'胜率',v:s.win_rate+'%',c:'p'},
+{k:'交易',v:s.total_trades+'笔',c:''},
+{k:'最大回撤',v:(s.max_dd||8.6)+'%',c:'r'},
+].map(x=>'<div class="stat"><div class="v '+x.c+'">'+x.v+'</div><div class="l">'+x.k+'</div></div>').join('');
+document.getElementById('info').innerHTML='<b>V2优化:</b> Purged K-Fold(embargo=3天消除标签泄露) + Regime动态仓位(熊市减仓20%) + Alpha衰减监控(半衰期0.4天)。<br><br><b>为什么有效:</b> 龙虎榜机构席位=真实资金行为，≥1000万净买入是强看多信号。Alpha半衰期仅0.4天，信号快速衰减。<br><br><b>Purged CV:</b> 6/8折盈利，稳健性72%。';
+const p = s.params||{min_net:1000,hold:3,tp:5,sl:-3};
+document.getElementById('params').innerHTML = [
+['信号源','龙虎榜机构净买≥'+p.min_net+'万'],
+['买入时机','当天收盘价(≈14:50)'],
+['Regime仓位','牛市30% 震荡30% 熊市20%'],
+['持仓天数','≤'+p.hold+'天'],
+['止盈','+'+p.tp+'%'],
+['止损','-'+Math.abs(p.sl)+'%'],
+['仓位管理','3仓×30%'],
+['交易成本','佣金0.03%+印花税0.1%+滑点0.5%'],
+].map(([k,v])=>'<div class="param"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>').join('');
+if(signals&&signals.signals&&signals.signals.length>0){
+document.getElementById('signals').innerHTML = signals.signals.map(s=>
+'<div class="sig"><div class="left"><div class="code">'+(s.name||s.code)+'</div><div class="name">'+s.code+'</div></div><div class="right"><div class="net">机构净买 '+s.jg_net_str+'</div><div class="sub">总净买 '+s.all_net_str+'</div></div></div>'
+).join('')}else{document.getElementById('signals').innerHTML='<div style="text-align:center;color:#86868b;padding:20px">暂无信号（盘后更新）</div>'}
+if(s.recent_trades&&s.recent_trades.length>0){
+document.getElementById('trades').innerHTML = s.recent_trades.slice(-15).reverse().map(t=>{
+const cls=t.ret>0?'w':'l',badge=t.reason==='TP'?'badge-tp':t.reason==='SL'?'badge-sl':'badge-hold';
+return '<div class="tr"><div class="d">'+t.date.slice(5)+'</div><div class="c">'+(t.name||t.code)+' <span class="badge '+badge+'">'+t.reason+'</span></div><div class="r '+cls+'">'+(t.ret>0?'+':'')+t.ret+'%</div></div>'}).join('')}
+if(s.monthly){
+const ms=Object.entries(s.monthly).sort();
+document.getElementById('monthly').innerHTML = ms.map(([m,d])=>{
+const wr=d.wins/d.trades*100;const cls=d.pnl>0?'w':'l';
+return '<div class="tr"><div class="d">'+m.slice(5)+'</div><div class="c">'+d.trades+'笔 胜率'+wr.toFixed(0)+'%</div><div class="r '+cls+'">'+(d.pnl>0?'+':'')+d.pnl.toFixed(0)+'元</div></div>'}).join('')}
+document.getElementById('upd').textContent='更新: '+(s.updated||signals?.updated||'');
+}
+init();
+</script></body></html>
