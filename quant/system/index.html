@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>JH多因子量化系统</title>
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--text2:#86868b;--text3:#aeaeb2;--line:#e5e5ea;--blue:#007aff;--green:#34c759;--red:#ff3b30;--orange:#ff9500;--radius:14px;--shadow:0 1px 3px rgba(0,0,0,.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;font-size:15px;line-height:1.5}
+.header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);padding:14px 16px 10px}
+.header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.header .sub{font-size:11px;color:var(--text3);margin-top:3px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.content{padding:8px 16px 80px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stat-box{background:#f9f9fb;border-radius:10px;padding:12px;text-align:center}
+.stat-box .num{font-size:22px;font-weight:800;line-height:1.1}
+.stat-box .label{font-size:10px;color:var(--text3);margin-top:4px}
+.stat-box.wide{grid-column:1/-1}
+.rec-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.rec-item:last-child{border-bottom:none}
+.rec-score{background:var(--blue);color:#fff;border-radius:6px;padding:2px 6px;font-size:11px;font-weight:600}
+.rec-name{font-weight:600;font-size:14px}
+.rec-code{font-size:11px;color:var(--text3)}
+.factor-chip{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;margin:2px;background:#f0f0f5;color:var(--text2)}
+.factor-chip.pos{background:#D1FAE5;color:#166534}
+.factor-chip.neg{background:#FEE2E2;color:#991B1B}
+.monthly-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
+.monthly-row:last-child{border-bottom:none}
+.bar-wrap{flex:1;height:14px;background:#f0f0f5;border-radius:4px;margin:0 8px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;position:absolute;top:0}
+.bar-fill.pos{background:var(--green)}
+.bar-fill.neg{background:var(--red);right:0}
+.tab-row{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tab{flex:1;text-align:center;padding:10px 0;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.section{display:none}
+.section.active{display:block}
+.trade-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}
+.trade-row:last-child{border-bottom:none}
+.tag{padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.tag-tp{background:#D1FAE5;color:#166534}
+.tag-sl{background:#FEE2E2;color:#991B1B}
+.tag-hold{background:#FFF3E0;color:#E65100}
+.footer{text-align:center;font-size:10px;color:var(--text3);padding:16px;line-height:1.6}
+.loading{text-align:center;padding:60px 20px;color:var(--text3);font-size:13px}
+.spinner{width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.params-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 0 12px}
+.param-card{background:#f9f9fb;border-radius:10px;padding:8px 4px;text-align:center}
+.param-card .p-label{font-size:9px;color:var(--text3)}
+.param-card .p-val{font-size:15px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1><span class="dot"></span> JH多因子量化系统</h1>
+  <div class="sub" id="meta">加载中...</div>
+</div>
+<div class="content" id="app">
+  <div class="loading"><div class="spinner"></div>加载数据...</div>
+</div>
+
+<script>
+var DATA=null;
+function init(){
+  fetch('data/results/backtest_result.json?t='+Date.now())
+    .then(r=>r.json()).then(d=>{DATA=d;render()}).catch(e=>{
+      document.getElementById('app').innerHTML='<div class="loading">❌ 数据加载失败</div>';
+    });
+}
+
+function render(){
+  var d=DATA, s=d.stats, p=d.params, app=document.getElementById('app');
+  document.getElementById('meta').innerHTML='更新 '+d.updated_at+' · 13因子 · TP+'+p.tp+'% SL-'+p.sl+'% 门槛≥'+p.min_score;
+  
+  var html='';
+  // 参数卡
+  html+='<div class="params-row">';
+  html+='<div class="param-card"><div class="p-label">止盈TP</div><div class="p-val" style="color:var(--green)">+'+p.tp+'%</div></div>';
+  html+='<div class="param-card"><div class="p-label">止损SL</div><div class="p-val" style="color:var(--red)">-'+p.sl+'%</div></div>';
+  html+='<div class="param-card"><div class="p-label">门槛</div><div class="p-val" style="color:var(--blue)">≥'+p.min_score+'</div></div>';
+  html+='<div class="param-card"><div class="p-label">持仓</div><div class="p-val">≤'+p.hold+'天</div></div>';
+  html+='</div>';
+  
+  // 统计卡
+  html+='<div class="card"><div class="card-title">📊 回测统计</div><div class="stats-grid">';
+  html+='<div class="stat-box"><div class="num">'+s.total+'</div><div class="label">总交易笔数</div></div>';
+  html+='<div class="stat-box"><div class="num" style="color:var(--blue)">'+s.win_rate+'%</div><div class="label">胜率</div></div>';
+  html+='<div class="stat-box"><div class="num" style="color:'+(s.total_return>=0?'var(--green)':'var(--red)')+'">'+(s.total_return>=0?'+':'')+s.total_return+'%</div><div class="label">总收益</div></div>';
+  html+='<div class="stat-box"><div class="num">'+(s.avg_return>=0?'+':'')+s.avg_return+'%</div><div class="label">平均收益</div></div>';
+  html+='<div class="stat-box"><div class="num" style="color:var(--green)">'+s.tp+'</div><div class="label">TP止盈</div></div>';
+  html+='<div class="stat-box"><div class="num" style="color:var(--red)">'+s.sl+'</div><div class="label">SL止损</div></div>';
+  html+='<div class="stat-box"><div class="num" style="color:var(--orange)">'+s.hold+'</div><div class="label">HOLD到期</div></div>';
+  html+='<div class="stat-box"><div class="num">13</div><div class="label">因子数量</div></div>';
+  html+='</div></div>';
+  
+  // Tab
+  html+='<div class="tab-row">';
+  html+='<div class="tab active" onclick="switchTab(0,this)">🎯 今日推荐</div>';
+  html+='<div class="tab" onclick="switchTab(1,this)">📈 月度收益</div>';
+  html+='<div class="tab" onclick="switchTab(2,this)">🧮 因子库</div>';
+  html+='<div class="tab" onclick="switchTab(3,this)">📋 交易记录</div>';
+  html+='</div>';
+  
+  // 今日推荐
+  html+='<div class="section active" id="sec0">';
+  if(d.recommendations&&d.recommendations.length>0){
+    html+='<div class="card"><div class="card-title">🏆 今日推荐 · '+d.recommendations.length+'只</div>';
+    d.recommendations.forEach(function(r){
+      var chg=r.pctChg||r.change||0;
+      html+='<div class="rec-item"><div><div class="rec-name">'+r.code+'</div><div class="rec-code">¥'+r.close+' / '+(chg>=0?'+':'')+chg.toFixed(1)+'%</div></div><div class="rec-score">'+r.score+'分</div></div>';
+    });
+    html+='</div>';
+  } else {
+    html+='<div class="card"><div style="text-align:center;color:var(--text3);padding:20px">暂无推荐</div></div>';
+  }
+  html+='</div>';
+  
+  // 月度收益
+  html+='<div class="section" id="sec1">';
+  html+='<div class="card"><div class="card-title">📅 月度收益</div>';
+  if(d.monthly){
+    var months=Object.keys(d.monthly).sort();
+    var maxAbs=0;
+    months.forEach(function(m){var v=Math.abs(d.monthly[m].tot);if(v>maxAbs)maxAbs=v;});
+    if(maxAbs==0)maxAbs=1;
+    months.forEach(function(m){
+      var v=d.monthly[m];
+      var pct=v.tot/maxAbs*50;
+      var color=v.tot>=0?'var(--green)':'var(--red)';
+      html+='<div class="monthly-row"><span style="width:55px;font-weight:600">'+m+'</span><div class="bar-wrap"><div class="bar-fill '+(v.tot>=0?'pos':'neg')+'" style="width:'+Math.abs(pct)+'%;'+(v.tot<0?'right:0;left:auto':'')+'"></div></div><span style="width:70px;text-align:right;font-weight:600;color:'+color+'">'+(v.tot>=0?'+':'')+v.tot.toFixed(1)+'%</span><span style="width:35px;text-align:right;font-size:10px;color:var(--text3)">'+v.cnt+'笔</span></div>';
+    });
+  }
+  html+='</div></div>';
+  
+  // 因子库
+  html+='<div class="section" id="sec2">';
+  html+='<div class="card"><div class="card-title">🧮 因子库 · '+d.factors.length+'个</div>';
+  var factorInfo={
+    'momentum_5':'5日动量 P/P(-5)-1',
+    'momentum_20':'20日动量',
+    'reversal_5':'5日反转 -MOM',
+    'volatility':'20日波动率 std(r)',
+    'turnover':'量比 V/MA(V,5)',
+    'amplitude':'振幅 (H-L)/C(-1)',
+    'price_position':'价格位置 (P-MIN)/(MAX-MIN)',
+    'macd':'MACD柱状 2*(DIF-DEA)',
+    'rsi':'RSI(14) 100-100/(1+RS)',
+    'bollinger':'布林带位置 (P-BBmid)/(BBwidth/2)',
+    'ma_alignment':'均线多头排列 MA5>MA10>MA20>MA60',
+    'money_flow':'资金流向 CMF',
+    'vol_price_div':'量价背离 corr(C,V)'
+  };
+  d.factors.forEach(function(f){
+    var info=factorInfo[f]||f;
+    html+='<div style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="factor-chip pos">'+f+'</span><span style="font-size:11px;color:var(--text2);margin-left:6px">'+info+'</span></div>';
+  });
+  html+='</div></div>';
+  
+  // 交易记录
+  html+='<div class="section" id="sec3">';
+  html+='<div class="card"><div class="card-title">📋 最近交易 · '+(d.trades?d.trades.length:0)+'笔</div>';
+  if(d.trades){
+    d.trades.slice().reverse().forEach(function(t){
+      var cls=t.hit=='TP'?'tag-tp':t.hit=='SL'?'tag-sl':'tag-hold';
+      html+='<div class="trade-row"><span style="width:80px">'+t.date+'</span><span style="width:70px">'+t.code+'</span><span style="width:45px" class="rec-score">'+t.score+'分</span><span style="width:55px">¥'+t.entry+'</span><span class="tag '+cls+'">'+t.hit+'</span><span style="width:55px;text-align:right;font-weight:600;color:'+(t.ret>=0?'var(--green)':'var(--red)')+'">'+(t.ret>=0?'+':'')+t.ret+'%</span></div>';
+    });
+  }
+  html+='</div></div>';
+  
+  html+='<div class="footer">JH多因子量化系统 v1.0 · 13因子×5策略 · 通达信数据 · 仅供参考</div>';
+  app.innerHTML=html;
+}
+
+function switchTab(n,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
+  el.classList.add('active');
+  document.getElementById('sec'+n).classList.add('active');
+}
+
+init();
+</script>
+</body>
+</html>

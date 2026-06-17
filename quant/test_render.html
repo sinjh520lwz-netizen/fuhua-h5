@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>renderRecommend测试</title>
+<style>
+body { font-family: -apple-system, sans-serif; padding: 20px; font-size: 14px; }
+.card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 10px 0; }
+.error { color: red; font-weight: bold; }
+.success { color: green; }
+</style>
+</head>
+<body>
+<h1>renderRecommend逐步测试</h1>
+<div id="log"></div>
+<div id="result"></div>
+
+<script>
+(function(){
+  const log = document.getElementById('log');
+  const result = document.getElementById('result');
+  
+  function addLog(msg, type) {
+    log.innerHTML += '<div class="' + type + '">' + msg + '</div>';
+  }
+  
+  addLog('1. 开始执行...', 'success');
+  
+  fetch('data/alpha191_recommendations.json?t=' + Date.now())
+    .then(r => r.json())
+    .then(d => {
+      addLog('2. 数据加载成功', 'success');
+      
+      try {
+        // 逐步测试renderRecommend
+        const recData = d;
+        
+        addLog('3. 检查recData...', 'success');
+        if(!recData) {
+          addLog('ERROR: recData为空', 'error');
+          return;
+        }
+        
+        addLog('4. 检查recData.top_picks...', 'success');
+        const stocks = recData.top_picks && recData.top_picks.length ? recData.top_picks : recData.all_stocks;
+        addLog('   stocks数量: ' + stocks.length, 'success');
+        
+        if(!stocks || !stocks.length) {
+          addLog('ERROR: stocks为空', 'error');
+          return;
+        }
+        
+        addLog('5. 开始遍历stocks...', 'success');
+        
+        stocks.forEach((s, idx) => {
+          addLog('   处理stock[' + idx + ']: ' + s.name, 'success');
+          
+          try {
+            const chgClass = s.change >= 0 ? 'up' : 'down';
+            const chgSign = s.change >= 0 ? '+' : '';
+            addLog('   ✓ change处理完成', 'success');
+            
+            // 测试factors
+            if(s.factors){
+              const maxF = Math.max(...Object.values(s.factors));
+              addLog('   ✓ factors处理完成, maxF=' + maxF, 'success');
+            }
+            
+            // 测试indicators
+            if(s.indicators){
+              addLog('   ✓ indicators存在', 'success');
+            }
+            
+            // 测试alpha
+            if(s.alpha){
+              addLog('   ✓ alpha存在', 'success');
+            }
+            
+            // 测试concepts
+            if(s.concepts && s.concepts.length){
+              addLog('   ✓ concepts存在: ' + s.concepts.length + '个', 'success');
+            }
+            
+          } catch(e) {
+            addLog('   ERROR in stock[' + idx + ']: ' + e.message, 'error');
+          }
+        });
+        
+        addLog('6. 所有stocks处理完成!', 'success');
+        result.innerHTML = '<div class="card success">✅ renderRecommend测试通过</div>';
+        
+      } catch(e) {
+        addLog('ERROR: ' + e.message, 'error');
+        addLog('Stack: ' + e.stack, 'error');
+      }
+    })
+    .catch(e => addLog('Fetch ERROR: ' + e.message, 'error'));
+})();
+</script>
+</body>
+</html>

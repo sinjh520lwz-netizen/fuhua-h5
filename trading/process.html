@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>JH标准化选股流程</title>
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--text2:#86868b;--text3:#aeaeb2;--line:#e5e5ea;--blue:#007aff;--green:#34c759;--red:#ff3b30;--orange:#ff9500;--purple:#af52de;--cyan:#32d4a4;--radius:14px;--shadow:0 1px 3px rgba(0,0,0,.06);--glass:rgba(255,255,255,.72)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh;font-size:15px;line-height:1.5;overflow-x:hidden}
+
+/* Header */
+.header{position:sticky;top:0;z-index:100;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);padding:14px 16px 10px}
+.header-top{display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.header h1 .badge{font-size:10px;font-weight:600;color:var(--blue);background:rgba(0,122,255,.1);padding:2px 8px;border-radius:20px;letter-spacing:.3px}
+.header .sub{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.4}
+.refresh-btn{background:none;border:none;font-size:18px;color:var(--text2);cursor:pointer;padding:4px;opacity:.5;transition:opacity .2s}
+.refresh-btn:active{opacity:1}
+
+/* Step indicator bar */
+.step-bar{padding:12px 16px;display:flex;gap:0;background:var(--bg);border-bottom:1px solid var(--line);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.step-bar::-webkit-scrollbar{display:none}
+.step-dot{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:44px;cursor:pointer;position:relative}
+.step-dot .circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--card);border:2px solid var(--line);color:var(--text3);transition:all .3s}
+.step-dot.active .circle{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(0,122,255,.3)}
+.step-dot.done .circle{background:var(--green);border-color:var(--green);color:#fff}
+.step-dot .label{font-size:9px;color:var(--text3);white-space:nowrap}
+.step-dot.active .label{color:var(--blue);font-weight:600}
+.step-connector{flex:1;display:flex;align-items:center;justify-content:center;min-width:12px}
+.step-connector::after{content:'';display:block;width:100%;height:2px;background:var(--line);border-radius:1px}
+.step-bar .step-dot.active+.step-connector::after,.step-bar .step-dot.done+.step-connector::after{background:var(--blue)}
+
+/* Content */
+.content{padding:12px 16px 80px}
+
+/* Section */
+.section{margin-bottom:16px}
+.section-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title .num{width:24px;height:24px;border-radius:8px;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-title .num.green{background:var(--green)}
+.section-title .num.orange{background:var(--orange)}
+.section-title .num.purple{background:var(--purple)}
+.section-title .num.cyan{background:var(--cyan)}
+.section-title .num.red{background:var(--red)}
+
+/* Step card */
+.step-card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;transition:all .2s}
+.step-card:active{transform:scale(.98)}
+.step-card-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.step-card-header .left{display:flex;align-items:center;gap:10px;flex:1}
+.step-card-header .step-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0}
+.step-card-header .step-info{flex:1}
+.step-card-header .step-info .name{font-size:14px;font-weight:600}
+.step-card-header .step-info .brief{font-size:11px;color:var(--text3);margin-top:1px}
+.step-card-header .arrow{font-size:14px;color:var(--text3);transition:transform .3s}
+.step-card.open .step-card-header .arrow{transform:rotate(180deg)}
+.step-card-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.step-card.open .step-card-body{max-height:600px}
+.step-card-body-inner{padding-top:14px;border-top:1px solid var(--line);margin-top:12px;font-size:13px;color:var(--text2);line-height:1.7}
+
+.step-card-body-inner .highlight{color:var(--blue);font-weight:600}
+.step-card-body-inner .ok{color:var(--green);font-weight:600}
+.step-card-body-inner .no{color:var(--red);font-weight:600}
+.step-card-body-inner .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;margin-right:4px}
+.tag-blue{background:rgba(0,122,255,.1);color:var(--blue)}
+.tag-green{background:rgba(52,199,89,.1);color:var(--green)}
+.tag-red{background:rgba(255,59,48,.1);color:var(--red)}
+.tag-orange{background:rgba(255,149,0,.1);color:var(--orange)}
+.tag-purple{background:rgba(175,82,222,.1);color:var(--purple)}
+
+.rule-list{list-style:none;padding:0}
+.rule-list li{position:relative;padding:4px 0 4px 16px;font-size:13px;color:var(--text2)}
+.rule-list li::before{content:'·';position:absolute;left:4px;color:var(--text3);font-weight:700}
+
+/* Chart pattern cards */
+.pattern-grid{display:grid;grid-template-columns:1fr;gap:10px}
+.pattern-card{border-radius:12px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+.pattern-card.good{background:rgba(52,199,89,.06);border:1px solid rgba(52,199,89,.15)}
+.pattern-card.bad{background:rgba(255,59,48,.06);border:1px solid rgba(255,59,48,.15)}
+.pattern-card .icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pattern-card.good .icon{background:rgba(52,199,89,.12);color:var(--green)}
+.pattern-card.bad .icon{background:rgba(255,59,48,.12);color:var(--red)}
+.pattern-card .p-body{flex:1}
+.pattern-card .p-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.pattern-card.good .p-title{color:var(--green)}
+.pattern-card.bad .p-title{color:var(--red)}
+.pattern-card .p-desc{font-size:12px;color:var(--text2);line-height:1.6}
+
+/* Timeline */
+.timeline{padding:0;position:relative}
+.timeline::before{content:'';position:absolute;left:19px;top:0;bottom:0;width:2px;background:var(--line);border-radius:1px}
+.tl-item{position:relative;padding:0 0 16px 48px}
+.tl-item:last-child{padding-bottom:0}
+.tl-item .dot{position:absolute;left:12px;top:4px;width:16px;height:16px;border-radius:50%;border:3px solid;background:var(--card);z-index:1}
+.tl-item.blue .dot{border-color:var(--blue)}
+.tl-item.green .dot{border-color:var(--green)}
+.tl-item.red .dot{border-color:var(--red)}
+.tl-item .time{font-size:15px;font-weight:700;margin-bottom:3px}
+.tl-item.blue .time{color:var(--blue)}
+.tl-item.green .time{color:var(--green)}
+.tl-item.red .time{color:var(--red)}
+.tl-item .tl-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.tl-item .tl-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;margin:6px 0 4px}
+.tl-item.blue .tl-tag{background:rgba(0,122,255,.1);color:var(--blue)}
+.tl-item.green .tl-tag{background:rgba(52,199,89,.1);color:var(--green)}
+.tl-item.red .tl-tag{background:rgba(255,59,48,.1);color:var(--red)}
+
+/* Advantage cards */
+.adv-grid{display:grid;gap:8px}
+.adv-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);display:flex;gap:10px;align-items:flex-start}
+.adv-card .a-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.adv-card .a-icon.blue{background:rgba(0,122,255,.1);color:var(--blue)}
+.adv-card .a-icon.green{background:rgba(52,199,89,.1);color:var(--green)}
+.adv-card .a-icon.orange{background:rgba(255,149,0,.1);color:var(--orange)}
+.adv-card .a-icon.purple{background:rgba(175,82,222,.1);color:var(--purple)}
+.adv-card .a-body{flex:1}
+.adv-card .a-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.adv-card .a-desc{font-size:11px;color:var(--text3);line-height:1.5}
+
+/* Rule highlight boxes */
+.rule-box{padding:14px;border-radius:12px;margin-bottom:12px}
+.rule-box.do{background:rgba(52,199,89,.06);border-left:4px solid var(--green)}
+.rule-box.dont{background:rgba(255,59,48,.06);border-left:4px solid var(--red)}
+.rule-box .r-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.rule-box.do .r-title{color:var(--green)}
+.rule-box.dont .r-title{color:var(--red)}
+.rule-box .r-desc{font-size:12px;color:var(--text2);line-height:1.6}
+
+/* Philosophy quote */
+.quote-block{background:linear-gradient(135deg,rgba(0,122,255,.04),rgba(50,212,164,.04));border-radius:var(--radius);padding:18px;margin:16px 0;border:1px solid rgba(0,122,255,.08)}
+.quote-block .q-text{font-size:14px;color:var(--text);line-height:1.7;font-weight:500;text-align:center}
+.quote-block .q-text .em{color:var(--blue)}
+.quote-block .q-from{font-size:11px;color:var(--text3);text-align:center;margin-top:8px}
+
+/* Bottom CTA */
+.cta-bar{position:fixed;bottom:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);padding:10px 16px;z-index:100;display:flex;gap:10px}
+.cta-btn{flex:1;padding:12px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:transform .15s,opacity .15s}
+.cta-btn:active{transform:scale(.97)}
+.cta-btn.primary{background:var(--blue);color:#fff}
+.cta-btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.cta-btn .small{font-size:10px;font-weight:400;opacity:.7}
+
+/* Screen width rule */
+.screen-rule{background:var(--card);border-radius:var(--radius);padding:14px;margin:12px 0;box-shadow:var(--shadow)}
+.screen-rule-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.screen-rule-title .icon{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;flex-shrink:0}
+.screen-rule-title .icon.pass{background:var(--green)}
+.screen-rule-title .icon.filter{background:var(--orange)}
+.screen-rule-detail{font-size:12px;color:var(--text2);line-height:1.6;padding-left:28px}
+.screen-rule-detail strong{color:var(--text)}
+
+/* Collapsible trigger */
+.collapse-trigger{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);padding:8px 0;cursor:pointer}
+.collapse-trigger:active{opacity:.6}
+
+@media(prefers-color-scheme:dark){
+:root{--bg:#0a0e17;--card:#131825;--text:#e8eaf0;--text2:#7a8299;--text3:#4a5277;--line:rgba(255,255,255,.06);--shadow:0 2px 12px rgba(0,0,0,.3);--glass:rgba(10,14,23,.85)}
+}
+
+/* Entrance animation */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.section{animation:fadeUp .5s ease both}
+.section:nth-child(2){animation-delay:.1s}
+.section:nth-child(3){animation-delay:.2s}
+.section:nth-child(4){animation-delay:.3s}
+.section:nth-child(5){animation-delay:.4s}
+
+/* Scroll to top button */
+.scroll-top{position:fixed;bottom:72px;right:16px;width:40px;height:40px;border-radius:50%;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:transform .2s,opacity .2s;z-index:90;opacity:0;pointer-events:none}
+.scroll-top.show{opacity:1;pointer-events:auto}
+.scroll-top:active{transform:scale(.9)}
+
+/* Process flow diagram */
+.flow-chart{display:flex;flex-direction:column;gap:0;padding:8px 0}
+.flow-node{display:flex;align-items:center;gap:10px;padding:8px 0;position:relative}
+.flow-node::before{content:'';position:absolute;left:15px;top:38px;width:2px;height:calc(100% - 36px);background:var(--line);z-index:0}
+.flow-node:last-child::before{display:none}
+.flow-node .f-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;z-index:1;flex-shrink:0}
+.flow-node .f-num.n1{background:var(--blue)}
+.flow-node .f-num.n2{background:var(--green)}
+.flow-node .f-num.n3{background:var(--orange)}
+.flow-node .f-num.n4{background:var(--purple)}
+.flow-node .f-num.n5{background:var(--cyan)}
+.flow-node .f-num.n6{background:var(--red)}
+.flow-node .f-body{flex:1}
+.flow-node .f-title{font-size:14px;font-weight:600}
+.flow-node .f-desc{font-size:11px;color:var(--text3);margin-top:1px}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>标准化选股 <span class="badge">v1.0</span></h1>
+    <button class="refresh-btn" onclick="resetAll()">↻</button>
+  </div>
+  <div class="sub">五步量化筛选 · 分时形态确认 · 铁律执行</div>
+</div>
+
+<div class="step-bar" id="stepBar">
+  <div class="step-dot active" data-step="1"><div class="circle">1</div><div class="label">涨幅</div></div>
+  <div class="step-connector"></div>
+  <div class="step-dot" data-step="2"><div class="circle">2</div><div class="label">量能</div></div>
+  <div class="step-connector"></div>
+  <div class="step-dot" data-step="3"><div class="circle">3</div><div class="label">换手</div></div>
+  <div class="step-connector"></div>
+  <div class="step-dot" data-step="4"><div class="circle">4</div><div class="label">市值</div></div>
+  <div class="step-connector"></div>
+  <div class="step-dot" data-step="5"><div class="circle">5</div><div class="label">股性</div></div>
+  <div class="step-connector"></div>
+  <div class="step-dot" data-step="6"><div class="circle">6</div><div class="label">分时</div></div>
+</div>
+
+<div class="content">
+
+  <!-- Section 1: 五步量化筛选 -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span>五步量化筛选 · 第一道防线</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+      通过价格强度、成交动能、筹码结构、流通盘及历史股性的多维度交叉验证，构建尾盘选股的"第一道防线"，快速过滤无效标的，精准锁定符合超短交易逻辑的潜力股。
+    </p>
+
+    <!-- Step 1 -->
+    <div class="step-card open" onclick="toggleCard(this)">
+      <div class="step-card-header">
+        <div class="left">
+          <div class="step-icon" style="background:var(--blue)">01</div>
+          <div class="step-info">
+            <div class="name">涨幅初筛 <span class="tag tag-blue">3% - 5%</span></div>
+            <div class="brief">兼顾资金进驻与分歧程度</div>
+          </div>
+        </div>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="step-card-body">
+        <div class="step-card-body-inner">
+          <div class="rule-box do">
+            <div class="r-title">✓ 选入标准</div>
+            <div class="r-desc"><strong>主板个股涨幅 3% - 5%</strong>。这个区间的涨势不急不缓，往往是有人在有节奏地推进。既有市场生命力、短期情绪逐步升温，又过滤了因消息面刺激而突发冲高、缺乏真实买盘承接力的标的。</div>
+          </div>
+          <div class="rule-box dont">
+            <div class="r-title">✗ 排除逻辑</div>
+            <div class="r-desc">太低→没有活跃资金介入；太高→浮盈太多、散户容易分歧。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-card" onclick="toggleCard(this)">
+      <div class="step-card-header">
+        <div class="left">
+          <div class="step-icon" style="background:var(--green)">02</div>
+          <div class="step-info">
+            <div class="name">量能验证 <span class="tag tag-green">量比 > 1</span></div>
+            <div class="brief">确保资金真实关注</div>
+          </div>
+        </div>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="step-card-body">
+        <div class="step-card-body-inner">
+          <div class="rule-box do">
+            <div class="r-title">✓ 选入标准</div>
+            <div class="r-desc"><strong>成交量量比 > 1</strong>。说明今日成交量较近期均值放大，有增量资金进场，是后期走强的必要支撑。</div>
+          </div>
+          <div class="rule-box dont">
+            <div class="r-title">✗ 排除逻辑</div>
+            <div class="r-desc">量比小于1→说明今日成交量比平时萎缩，当天退潮概率大，不碰。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-card" onclick="toggleCard(this)">
+      <div class="step-card-header">
+        <div class="left">
+          <div class="step-icon" style="background:var(--orange)">03</div>
+          <div class="step-info">
+            <div class="name">换手把关 <span class="tag tag-orange">5% - 10%</span></div>
+            <div class="brief">平衡筹码交换效率</div>
+          </div>
+        </div>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="step-card-body">
+        <div class="step-card-body-inner">
+          <div class="rule-box do">
+            <div class="r-title">✓ 选入标准</div>
+            <div class="r-desc"><strong>换手率 5% - 10%</strong>。既避开过于冷清的低换手，又远离分歧过大的高换手。</div>
+          </div>
+          <div class="rule-box dont">
+            <div class="r-title">✗ 排除逻辑</div>
+            <div class="r-desc">低于 5%→冷门票，基本没人关注，不适合做超短；高于 10%→分歧太大，很可能主力借机出货，次日确定性不够。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-card" onclick="toggleCard(this)">
+      <div class="step-card-header">
+        <div class="left">
+          <div class="step-icon" style="background:var(--purple)">04</div>
+          <div class="step-info">
+            <div class="name">市值界定 <span class="tag tag-purple">50亿 - 200亿</span></div>
+            <div class="brief">充足交易深度与弹性</div>
+          </div>
+        </div>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="step-card-body">
+        <div class="step-card-body-inner">
+          <div class="rule-box do">
+            <div class="r-title">✓ 选入标准</div>
+            <div class="r-desc"><strong>总市值 50亿 - 200亿</strong>。既规避纯粹炒作的微型盘，又远离流动性不足的超大盘，具备更高的弹性与参与价值。</div>
+          </div>
+          <div class="rule-box dont">
+            <div class="r-title">✗ 排除逻辑</div>
+            <div class="r-desc">200亿以上→短线资金推不动，弹性不够；50亿以下→小市值易被操控。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step-card" onclick="toggleCard(this)">
+      <div class="step-card-header">
+        <div class="left">
+          <div class="step-icon" style="background:var(--cyan)">05</div>
+          <div class="step-info">
+            <div class="name">股性确认 <span class="tag tag-blue">近20天涨停</span></div>
+            <div class="brief">筛选有爆发力基因的个股</div>
+          </div>
+        </div>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="step-card-body">
+        <div class="step-card-body-inner">
+          <div class="rule-box do">
+            <div class="r-title">✓ 选入标准</div>
+            <div class="r-desc"><strong>近20天内有涨停记录</strong>。说明该阶段有主力资金愿意推动，具备短线活跃性，比长期沉寂的个股更有冲劲。</div>
+          </div>
+          <div class="rule-box dont">
+            <div class="r-title">✗ 排除逻辑</div>
+            <div class="r-desc">无涨停记录→说明近期没有主力资金强势运作，短线基因缺失，一潭死水的票不要。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: 分时图形态验证 -->
+  <div class="section">
+    <div class="section-title"><span class="num red">2</span>分时图形态验证 · 最终决策</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+      五步筛选通过后，最后也是最关键的一步——打开分时图，确认当天的价格行为是否符合强势模型。
+    </p>
+
+    <div class="pattern-grid">
+      <div class="pattern-card good">
+        <div class="icon">✓</div>
+        <div class="p-body">
+          <div class="p-title">理想形态 · 高胜率模型</div>
+          <div class="p-desc">
+            • 股价全天稳定运行在分时均线<strong>上方</strong>，形成强势区间<br>
+            • 回踩均线时能迅速获得承接反弹<br>
+            • 拒绝深度调整，盘整阶段走势平稳无跳水<br>
+            • 筹码结构稳固，量价关系保持健康<br><br>
+            <strong style="color:var(--green);">核心信号：</strong>均价线持续被实体K线支撑，是主力承接盘的直观体现。此类型买盘意愿强烈，是绝佳介入的高胜率模型。
+          </div>
+        </div>
+      </div>
+
+      <div class="pattern-card bad">
+        <div class="icon">✗</div>
+        <div class="p-body">
+          <div class="p-title">排除形态 · 坚决空仓</div>
+          <div class="p-desc">
+            • 分时线持续有效跌破均价线，反抽无力、重心不断下移<br>
+            • 尾盘出现放量跳水，买盘承接极度疲软<br>
+            • 全天走势无精打采，量能异常波动<br>
+            • 资金面高度承压<br><br>
+            <strong style="color:var(--red);">空仓原则：</strong>跌破均价线且无承接→主力已放弃护盘，后续大概率延续调整，坚决空仓。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-block">
+      <div class="q-text">看分时只看一件事：<span class="em">股价有没有站上均线</span>——站住了等回踩接，站不住直接跳。</div>
+      <div class="q-from">—— 核心交易哲学</div>
+    </div>
+  </div>
+
+  <!-- Section 3: 执行纪律 -->
+  <div class="section">
+    <div class="section-title"><span class="num green">3</span>交易执行 · 铁律</div>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+      固定时间，固定动作。剔除人性恐惧与贪婪，像机器人一样机械执行。
+    </p>
+
+    <div class="timeline">
+      <div class="tl-item blue">
+        <div class="dot"></div>
+        <div class="time">14:30 → 收盘</div>
+        <div class="tl-tag">进场窗口</div>
+        <div class="tl-desc">
+          <strong>核心动作：</strong>平稳分批介入。耐心等待分时形态确认，拒绝盘中冲动交易，按计划仓位分批完成建仓。<br>
+          <strong style="color:var(--red);">绝对禁忌：</strong>严禁追高买入，杜绝情绪化下单。
+        </div>
+      </div>
+      <div class="tl-item green" style="padding-bottom:0">
+        <div class="dot"></div>
+        <div class="time">次日 10:00 前</div>
+        <div class="tl-tag">离场窗口</div>
+        <div class="tl-desc">
+          <strong>核心动作：</strong>果断离场出局。早盘10时以内完成交易结算，无论盈亏浮亏，严格执行隔夜交易规则。<br>
+          <strong style="color:var(--red);">绝对禁忌：</strong>不可因贪多而拖延，不能对个股抱有"涨停幻想"。截断亏损，让利润奔跑。
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-block">
+      <div class="q-text">进场2点半到收盘，确认分时形态符合条件之后介入，<span class="em">不要追不要冲</span>。离场次日10点之前，根据开盘后的分时走势择机出来，<span class="em">不要贪不要等涨到某个位置才走</span>。</div>
+      <div class="q-from">—— 极致风控：持股时长压缩至2小时以内</div>
+    </div>
+  </div>
+
+  <!-- Section 4: 核心优势 -->
+  <div class="section">
+    <div class="section-title"><span class="num green">4</span>核心优势 · 底层逻辑</div>
+
+    <div class="adv-grid">
+      <div class="adv-card">
+        <div class="a-icon blue">⚡</div>
+        <div class="a-body">
+          <div class="a-title">不追涨 · 不打板 · 不做日内</div>
+          <div class="a-desc">彻底规避传统超短中风险最高的交易动作，从源头剔除不确定性，大幅降低账户最大回撤幅度。</div>
+        </div>
+      </div>
+      <div class="adv-card">
+        <div class="a-icon green">🎯</div>
+        <div class="a-body">
+          <div class="a-title">概率优先 · 确定性优先</div>
+          <div class="a-desc">放弃单次暴利幻想，建立在数学概率优势之上，追求超过 70% 的交易成功率，积小胜为大胜。</div>
+        </div>
+      </div>
+      <div class="adv-card">
+        <div class="a-icon orange">📈</div>
+        <div class="a-body">
+          <div class="a-title">小幅连胜 · 复利积累</div>
+          <div class="a-desc">不求单日暴利，目标收益率每天 0.5% - 1%。看似微小，在复利效应下将突破线性增长局限。</div>
+        </div>
+      </div>
+      <div class="adv-card">
+        <div class="a-icon purple">⏳</div>
+        <div class="a-body">
+          <div class="a-title">时间是普通人最好的杠杆</div>
+          <div class="a-desc">当策略持续产生正向收益，时间将微小的优势不断放大。长坡厚雪，穿越牛熊周期，实现财富值跃迁。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote-block">
+      <div class="q-text">区别于传统超短的核心优势——<span class="em">像机器人一样的机械执行</span>，剔除人性中恐惧与贪婪的干扰，在波动剧烈的市场中建立起一道不可破的安全防线，是超短思维能够长期稳定盈利的底层逻辑。</div>
+    </div>
+  </div>
+
+  <!-- Section 5: 快速参考流程 -->
+  <div class="section">
+    <div class="section-title"><span class="num orange">5</span>全流程速查</div>
+
+    <div class="flow-chart">
+      <div class="flow-node">
+        <div class="f-num n1">1</div>
+        <div class="f-body">
+          <div class="f-title">涨幅初筛</div>
+          <div class="f-desc">主板个股涨幅 3% - 5%</div>
+        </div>
+      </div>
+      <div class="flow-node">
+        <div class="f-num n2">2</div>
+        <div class="f-body">
+          <div class="f-title">量能验证</div>
+          <div class="f-desc">成交量量比 > 1</div>
+        </div>
+      </div>
+      <div class="flow-node">
+        <div class="f-num n3">3</div>
+        <div class="f-body">
+          <div class="f-title">换手把关</div>
+          <div class="f-desc">换手率 5% - 10%</div>
+        </div>
+      </div>
+      <div class="flow-node">
+        <div class="f-num n4">4</div>
+        <div class="f-body">
+          <div class="f-title">市值界定</div>
+          <div class="f-desc">总市值 50亿 - 200亿</div>
+        </div>
+      </div>
+      <div class="flow-node">
+        <div class="f-num n5">5</div>
+        <div class="f-body">
+          <div class="f-title">股性确认</div>
+          <div class="f-desc">近20天内有涨停记录</div>
+        </div>
+      </div>
+      <div class="flow-node">
+        <div class="f-num n6">6</div>
+        <div class="f-body">
+          <div class="f-title">分时确认</div>
+          <div class="f-desc">股价站上均线 → 入场；跌破均线 → 空仓</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-box do" style="margin-top:12px">
+      <div class="r-title">✓ 入场条件（全部满足）</div>
+      <div class="r-desc">
+        ①涨幅3%-5% ②量比>1 ③换手5%-10% ④市值50亿-200亿 ⑤近20天涨停 ⑥分时图站上均线有承接
+      </div>
+    </div>
+    <div class="rule-box dont">
+      <div class="r-title">✗ 空仓条件（任一触发）</div>
+      <div class="r-desc">
+        任何一项不达标 → 放弃；分时图跌破均线无承接 → 坚决空仓
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="cta-bar">
+  <button class="cta-btn secondary" onclick="scrollToStep(1)">📋 筛选</button>
+  <button class="cta-btn secondary" onclick="scrollToStep(2)">📊 分时</button>
+  <button class="cta-btn secondary" onclick="scrollToStep(3)">⏰ 执行</button>
+  <button class="cta-btn primary" onclick="scrollToTop()">↑ 顶部</button>
+</div>
+
+<div class="scroll-top" id="scrollTop" onclick="scrollToTop()">↑</div>
+
+<script>
+// Toggle step cards
+function toggleCard(el) {
+  el.classList.toggle('open');
+}
+
+// Step bar visibility tracking
+const sections = document.querySelectorAll('.section');
+const stepDots = document.querySelectorAll('.step-dot');
+const stepBar = document.getElementById('stepBar');
+
+function updateStepProgress() {
+  const scrollY = window.scrollY;
+  let activeStep = 1;
+  
+  sections.forEach((section, idx) => {
+    const rect = section.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.4) {
+      activeStep = idx + 1;
+    }
+  });
+
+  stepDots.forEach((dot, i) => {
+    const stepNum = i + 1;
+    dot.classList.remove('active', 'done');
+    if (stepNum < activeStep) {
+      dot.classList.add('done');
+    } else if (stepNum === activeStep) {
+      dot.classList.add('active');
+    }
+  });
+}
+
+window.addEventListener('scroll', updateStepProgress, {passive: true});
+
+// Scroll to section
+function scrollToStep(step) {
+  const sections = document.querySelectorAll('.section');
+  if (step > 0 && step <= sections.length) {
+    // Scroll to top of the section with some offset for the fixed header
+    const headerHeight = document.querySelector('.header').offsetHeight + document.querySelector('.step-bar').offsetHeight;
+    const targetY = sections[step - 1].getBoundingClientRect().top + window.scrollY - headerHeight - 12;
+    window.scrollTo({top: targetY, behavior: 'smooth'});
+  }
+}
+
+// Scroll to top button visibility
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 400) {
+    scrollTopBtn.classList.add('show');
+  } else {
+    scrollTopBtn.classList.remove('show');
+  }
+}, {passive: true});
+
+function scrollToTop() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function resetAll() {
+  // Open first card only
+  document.querySelectorAll('.step-card').forEach((card, i) => {
+    if (i === 0) card.classList.add('open');
+    else card.classList.remove('open');
+  });
+  scrollToTop();
+}
+
+// Init: open first card, trigger progress
+resetAll();
+updateStepProgress();
+
+// Haptic feedback simulation
+let lastTap = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTap < 300) {
+    // Double tap
+    const card = e.target.closest('.step-card');
+    if (card && !e.target.closest('.step-card-body')) {
+      toggleCard(card);
+    }
+  }
+  lastTap = now;
+});
+
+</script>
+</body>
+</html>

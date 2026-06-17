@@ -1,0 +1,555 @@
+{
+  "version": "v1.1",
+  "updated_at": "2026-06-10",
+  "params": {
+    "tp": 5,
+    "sl": 4,
+    "hold": 5,
+    "min_score": 6
+  },
+  "stats": {
+    "total": 600,
+    "tp": 200,
+    "sl": 244,
+    "hold": 156,
+    "win_rate": 33.3,
+    "total_return": 32.77,
+    "avg_return": 0.05
+  },
+  "monthly": {
+    "2025-12": {
+      "cnt": 85,
+      "tot": 115.51,
+      "win": 45.88235294117647
+    },
+    "2026-01": {
+      "cnt": 100,
+      "tot": 71.95,
+      "win": 38.0
+    },
+    "2026-02": {
+      "cnt": 70,
+      "tot": 40.81,
+      "win": 32.857142857142854
+    },
+    "2026-03": {
+      "cnt": 110,
+      "tot": -94.56,
+      "win": 29.09090909090909
+    },
+    "2026-04": {
+      "cnt": 105,
+      "tot": 42.449999999999996,
+      "win": 32.38095238095238
+    },
+    "2026-05": {
+      "cnt": 90,
+      "tot": -62.37,
+      "win": 33.33333333333333
+    },
+    "2026-06": {
+      "cnt": 40,
+      "tot": -81.02,
+      "win": 10.0
+    }
+  },
+  "recommendations": [
+    {
+      "code": "sh.000001",
+      "close": 11.32,
+      "pctChg": 1.71,
+      "score": 82.0
+    },
+    {
+      "code": "sh.000333",
+      "close": 83.9,
+      "pctChg": 1.87,
+      "score": 80.0
+    },
+    {
+      "code": "sh.000795",
+      "close": 9.43,
+      "pctChg": 1.29,
+      "score": 79.0
+    },
+    {
+      "code": "sh.000012",
+      "close": 4.23,
+      "pctChg": -3.86,
+      "score": 78.0
+    },
+    {
+      "code": "sh.000691",
+      "close": 9.39,
+      "pctChg": 2.29,
+      "score": 78.0
+    }
+  ],
+  "trades": [
+    {
+      "date": "2026-05-28",
+      "code": "sh.000691",
+      "score": 85.0,
+      "entry": 8.59,
+      "exit": 8.59,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-05-28",
+      "code": "sh.000591",
+      "score": 78.0,
+      "entry": 6.0,
+      "exit": 6.0,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-05-28",
+      "code": "sh.000727",
+      "score": 78.0,
+      "entry": 2.95,
+      "exit": 2.95,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-05-28",
+      "code": "sh.000883",
+      "score": 78.0,
+      "entry": 5.17,
+      "exit": 5.17,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-05-28",
+      "code": "sh.001308",
+      "score": 78.0,
+      "entry": 21.64,
+      "exit": 21.64,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-05-29",
+      "code": "sh.000921",
+      "score": 88.0,
+      "entry": 24.66,
+      "exit": 25.18,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-05-29",
+      "code": "sh.000591",
+      "score": 85.0,
+      "entry": 6.07,
+      "exit": 6.07,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-05-29",
+      "code": "sh.000656",
+      "score": 80.0,
+      "entry": 1.46,
+      "exit": 1.44,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-05-29",
+      "code": "sh.000338",
+      "score": 78.0,
+      "entry": 35.34,
+      "exit": 35.34,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-05-29",
+      "code": "sh.000755",
+      "score": 78.0,
+      "entry": 5.28,
+      "exit": 5.19,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-01",
+      "code": "sh.000755",
+      "score": 88.0,
+      "entry": 5.32,
+      "exit": 5.41,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-01",
+      "code": "sh.000631",
+      "score": 78.0,
+      "entry": 3.42,
+      "exit": 3.38,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-01",
+      "code": "sh.000402",
+      "score": 77.0,
+      "entry": 3.13,
+      "exit": 3.05,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-01",
+      "code": "sh.000802",
+      "score": 77.0,
+      "entry": 5.17,
+      "exit": 5.3,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-01",
+      "code": "sh.000921",
+      "score": 77.0,
+      "entry": 25.18,
+      "exit": 25.18,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-06-02",
+      "code": "sh.000960",
+      "score": 85.0,
+      "entry": 43.19,
+      "exit": 41.84,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-02",
+      "code": "sh.000766",
+      "score": 83.0,
+      "entry": 24.13,
+      "exit": 23.45,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-02",
+      "code": "sh.000727",
+      "score": 80.0,
+      "entry": 2.98,
+      "exit": 2.92,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-02",
+      "code": "sh.000519",
+      "score": 78.0,
+      "entry": 19.43,
+      "exit": 19.43,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-06-02",
+      "code": "sh.000630",
+      "score": 78.0,
+      "entry": 7.08,
+      "exit": 7.07,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-03",
+      "code": "sh.000100",
+      "score": 80.0,
+      "entry": 4.74,
+      "exit": 4.74,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-06-03",
+      "code": "sh.000656",
+      "score": 78.0,
+      "entry": 1.44,
+      "exit": 1.4,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-03",
+      "code": "sh.000755",
+      "score": 78.0,
+      "entry": 5.41,
+      "exit": 5.41,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-03",
+      "code": "sh.000595",
+      "score": 77.0,
+      "entry": 7.32,
+      "exit": 7.32,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-03",
+      "code": "sh.000802",
+      "score": 77.0,
+      "entry": 4.93,
+      "exit": 4.93,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-04",
+      "code": "sh.000826",
+      "score": 79.0,
+      "entry": 2.33,
+      "exit": 2.3,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-04",
+      "code": "sh.000159",
+      "score": 78.0,
+      "entry": 6.88,
+      "exit": 7.0,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-04",
+      "code": "sh.000333",
+      "score": 78.0,
+      "entry": 82.42,
+      "exit": 83.9,
+      "hit": "HOLD",
+      "ret": 1.8
+    },
+    {
+      "date": "2026-06-04",
+      "code": "sh.000537",
+      "score": 78.0,
+      "entry": 10.93,
+      "exit": 10.93,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-04",
+      "code": "sh.000862",
+      "score": 78.0,
+      "entry": 7.24,
+      "exit": 7.24,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-05",
+      "code": "sh.001229",
+      "score": 78.0,
+      "entry": 38.17,
+      "exit": 37.66,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-05",
+      "code": "sh.000159",
+      "score": 75.0,
+      "entry": 7.0,
+      "exit": 7.0,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-05",
+      "code": "sh.000657",
+      "score": 75.0,
+      "entry": 70.1,
+      "exit": 70.1,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-05",
+      "code": "sh.000691",
+      "score": 75.0,
+      "entry": 9.01,
+      "exit": 9.01,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-05",
+      "code": "sh.000722",
+      "score": 75.0,
+      "entry": 15.1,
+      "exit": 15.1,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-08",
+      "code": "sh.000718",
+      "score": 85.0,
+      "entry": 2.15,
+      "exit": 2.15,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-08",
+      "code": "sh.000759",
+      "score": 85.0,
+      "entry": 6.27,
+      "exit": 6.27,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-08",
+      "code": "sh.000333",
+      "score": 80.0,
+      "entry": 82.85,
+      "exit": 83.9,
+      "hit": "HOLD",
+      "ret": 1.27
+    },
+    {
+      "date": "2026-06-08",
+      "code": "sh.000012",
+      "score": 75.0,
+      "entry": 4.31,
+      "exit": 4.23,
+      "hit": "HOLD",
+      "ret": -1.86
+    },
+    {
+      "date": "2026-06-08",
+      "code": "sh.000063",
+      "score": 75.0,
+      "entry": 36.81,
+      "exit": 36.81,
+      "hit": "TP",
+      "ret": 5
+    },
+    {
+      "date": "2026-06-09",
+      "code": "sh.000759",
+      "score": 85.0,
+      "entry": 6.02,
+      "exit": 6.02,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-09",
+      "code": "sh.000795",
+      "score": 79.0,
+      "entry": 9.31,
+      "exit": 9.43,
+      "hit": "HOLD",
+      "ret": 1.29
+    },
+    {
+      "date": "2026-06-09",
+      "code": "sh.000988",
+      "score": 78.0,
+      "entry": 155.53,
+      "exit": 155.53,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-09",
+      "code": "sh.000785",
+      "score": 76.0,
+      "entry": 2.49,
+      "exit": 2.49,
+      "hit": "SL",
+      "ret": -4
+    },
+    {
+      "date": "2026-06-09",
+      "code": "sh.000766",
+      "score": 72.0,
+      "entry": 25.16,
+      "exit": 25.28,
+      "hit": "HOLD",
+      "ret": 0.48
+    },
+    {
+      "date": "2026-06-10",
+      "code": "sh.000001",
+      "score": 82.0,
+      "entry": 11.32,
+      "exit": 11.32,
+      "hit": "HOLD",
+      "ret": 0.0
+    },
+    {
+      "date": "2026-06-10",
+      "code": "sh.000333",
+      "score": 80.0,
+      "entry": 83.9,
+      "exit": 83.9,
+      "hit": "HOLD",
+      "ret": 0.0
+    },
+    {
+      "date": "2026-06-10",
+      "code": "sh.000795",
+      "score": 79.0,
+      "entry": 9.43,
+      "exit": 9.43,
+      "hit": "HOLD",
+      "ret": 0.0
+    },
+    {
+      "date": "2026-06-10",
+      "code": "sh.000012",
+      "score": 78.0,
+      "entry": 4.23,
+      "exit": 4.23,
+      "hit": "HOLD",
+      "ret": 0.0
+    },
+    {
+      "date": "2026-06-10",
+      "code": "sh.000691",
+      "score": 78.0,
+      "entry": 9.39,
+      "exit": 9.39,
+      "hit": "HOLD",
+      "ret": 0.0
+    }
+  ],
+  "factors": [
+    "momentum_5",
+    "momentum_20",
+    "reversal_5",
+    "volatility",
+    "turnover",
+    "amplitude",
+    "price_position",
+    "macd",
+    "rsi",
+    "bollinger",
+    "ma_alignment",
+    "money_flow",
+    "vol_price_div"
+  ]
+}
