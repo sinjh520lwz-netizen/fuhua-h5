@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>JH 荐股助手</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--text2:#86868b;--text3:#aeaeb2;
+  --green:#34c759;--red:#ff3b30;--blue:#007aff;--orange:#ff9500;
+  --border:rgba(0,0,0,.06);--shadow:0 1px 3px rgba(0,0,0,.08);
+  --radius:14px;
+}
+html{font-size:16px}
+body{font-family:-apple-system,Helvetica Neue,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:env(safe-area-inset-bottom,0)}
+.header{padding:48px 20px 20px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;position:sticky;top:0;z-index:100}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.brand{font-size:22px;font-weight:700;letter-spacing:2px}
+.brand span{color:var(--orange)}
+.header-date{font-size:12px;color:rgba(255,255,255,.6)}
+.header-sub{font-size:13px;color:rgba(255,255,255,.7);line-height:1.5}
+.stats-bar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.stat-chip{background:rgba(255,255,255,.12);border-radius:20px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.9);display:flex;align-items:center;gap:5px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.stat-chip .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-green{background:var(--green)}.dot-red{background:var(--red)}.dot-blue{background:var(--blue)}
+.container{padding:12px 14px 100px}
+
+/* Section */
+.section{margin-bottom:12px}
+.section-title{font-size:15px;font-weight:600;padding:12px 16px 8px;display:flex;align-items:center;gap:8px}
+.section-title .icon{font-size:18px}
+.section-title .badge{font-size:10px;background:var(--blue);color:#fff;border-radius:10px;padding:2px 8px;margin-left:auto}
+
+/* Accordion */
+.accordion{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.accordion-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;-webkit-user-select:none;user-select:none;transition:background .15s}
+.accordion-header:active{background:rgba(0,0,0,.03)}
+.accordion-header .left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.accordion-header .title{font-size:15px;font-weight:600}
+.accordion-header .desc{font-size:12px;color:var(--text2);margin-top:2px}
+.accordion-header .arrow{font-size:12px;color:var(--text3);transition:transform .25s;flex-shrink:0}
+.accordion.open .accordion-header .arrow{transform:rotate(90deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1)}
+.accordion.open .accordion-body{max-height:2000px}
+.accordion-content{padding:0 16px 16px}
+
+/* Stock Card */
+.stock-card{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.stock-card:last-child{border-bottom:none}
+.stock-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;margin-right:12px}
+.rank-1{background:linear-gradient(135deg,#ff6b35,#ff3b30)}.rank-2{background:linear-gradient(135deg,#ff9500,#ff6b35)}.rank-3{background:linear-gradient(135deg,#ffcc00,#ff9500)}.rank-n{background:var(--text3)}
+.stock-info{flex:1;min-width:0}
+.stock-name{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
+.stock-name .code{font-size:11px;color:var(--text3);font-weight:400}
+.stock-signals{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.signal-tag{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(52,199,89,.1);color:var(--green)}
+.signal-tag.warn{background:rgba(255,149,0,.1);color:var(--orange)}
+.stock-price{text-align:right;flex-shrink:0;margin-left:12px}
+.stock-price .price{font-size:16px;font-weight:600}
+.stock-price .change{font-size:12px;margin-top:2px}
+.up{color:var(--red)}.down{color:var(--green)}
+.stock-score{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* Portfolio */
+.portfolio-stock{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid var(--border)}
+.portfolio-stock:last-child{border-bottom:none}
+.portfolio-left{flex:1;min-width:0}
+.portfolio-name{font-size:15px;font-weight:600}
+.portfolio-meta{font-size:12px;color:var(--text2);margin-top:4px;display:flex;gap:12px}
+.portfolio-right{text-align:right;flex-shrink:0;margin-left:12px}
+.portfolio-pnl{font-size:18px;font-weight:700}
+.portfolio-pct{font-size:12px;margin-top:2px}
+.portfolio-bar{height:4px;border-radius:2px;background:var(--border);margin-top:6px;overflow:hidden}
+.portfolio-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* Strategy Card */
+.strategy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.strategy-item{background:var(--bg);border-radius:10px;padding:12px;text-align:center}
+.strategy-value{font-size:20px;font-weight:700;margin-bottom:2px}
+.strategy-label{font-size:11px;color:var(--text2)}
+.strategy-item.highlight{background:linear-gradient(135deg,rgba(0,122,255,.08),rgba(0,122,255,.03))}
+.strategy-item.highlight .strategy-value{color:var(--blue)}
+
+/* Backtest Chart */
+.chart-wrap{position:relative;width:100%;height:180px;margin-top:8px;border-radius:10px;overflow:hidden;background:var(--bg)}
+.chart-wrap canvas{width:100%!important;height:100%!important}
+
+/* Risk Warning */
+.risk-box{background:rgba(255,59,48,.06);border:1px solid rgba(255,59,48,.15);border-radius:10px;padding:12px 14px;margin-top:12px}
+.risk-box .risk-title{font-size:13px;font-weight:600;color:var(--red);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.risk-box .risk-text{font-size:12px;color:#666;line-height:1.6}
+
+/* Tips */
+.tip-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.tip-title{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.tip-list{list-style:none;padding:0}
+.tip-list li{font-size:13px;color:#555;padding:4px 0;padding-left:18px;position:relative;line-height:1.5}
+.tip-list li::before{content:'';position:absolute;left:0;top:12px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+
+/* Event signals */
+.event-card{background:linear-gradient(135deg,rgba(255,149,0,.06),rgba(255,59,48,.04));border:1px solid rgba(255,149,0,.15);border-radius:10px;padding:14px;margin-bottom:10px}
+.event-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.event-name{font-size:15px;font-weight:600}
+.event-code{font-size:12px;color:var(--text2)}
+.event-detail{font-size:12px;color:#555;line-height:1.6}
+.event-detail strong{color:var(--orange)}
+
+/* Loading & Empty */
+.loading{text-align:center;padding:40px 0;color:var(--text3);font-size:13px}
+.loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;margin-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:30px 0;color:var(--text3);font-size:13px}
+.empty .icon{font-size:36px;margin-bottom:8px;opacity:.5}
+
+/* Tabbar */
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0)}
+.tab{flex:1;text-align:center;padding:8px 0 6px;cursor:pointer;-webkit-user-select:none;user-select:none;transition:color .15s}
+.tab .tab-icon{font-size:20px;margin-bottom:2px}
+.tab .tab-label{font-size:10px;color:var(--text3)}
+.tab.active .tab-label{color:var(--blue);font-weight:600}
+
+/* Page */
+.page{display:none}.page.active{display:block}
+
+/* Dedup note */
+.dedup-note{font-size:11px;color:var(--text3);padding:8px 16px;text-align:center}
+
+/* Action button */
+.action-bar{position:fixed;bottom:60px;left:14px;right:14px;z-index:99}
+.action-btn{width:100%;padding:14px;border-radius:var(--radius);border:none;font-size:15px;font-weight:600;color:#fff;background:linear-gradient(135deg,#007aff,#5856d6);box-shadow:0 4px 12px rgba(0,122,255,.3);cursor:pointer;-webkit-user-select:none;user-select:none;transition:transform .1s,opacity .1s}
+.action-btn:active{transform:scale(.98);opacity:.9}
+
+/* Refresh indicator */
+.refresh-bar{position:fixed;top:0;left:0;height:2px;background:var(--blue);z-index:200;transition:width .3s;opacity:0}
+.refresh-bar.active{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="refresh-bar" id="refreshBar"></div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div class="brand">J<span>H</span> 荐股</div>
+    <div class="header-date" id="headerDate"></div>
+  </div>
+  <div class="header-sub" id="headerSub">策略: 埋伏v5.0 · TP+6% SL-4% · 持仓7天 · 14:30买入</div>
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-chip"><div class="dot dot-green"></div><span id="chipScanned">--</span>只已扫描</div>
+    <div class="stat-chip"><div class="dot dot-blue"></div><span id="chipPicks">--</span>只入选</div>
+    <div class="stat-chip"><div class="dot dot-red"></div>本金 ¥15,000</div>
+  </div>
+</div>
+
+<!-- Page: 推荐 -->
+<div class="page active" id="page-picks">
+  <div class="container">
+    <!-- 今日推荐 -->
+    <div class="section">
+      <div class="section-title"><span class="icon">🎯</span>今日推荐 <span class="badge" id="picksCount">--</span></div>
+      <div class="accordion open" id="accPicks">
+        <div class="accordion-body">
+          <div class="accordion-content" id="picksList">
+            <div class="loading"><div class="spinner"></div><br>加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 事件驱动信号 -->
+    <div class="section">
+      <div class="section-title"><span class="icon">⚡</span>龙虎榜机构信号</div>
+      <div class="accordion" id="accEvent">
+        <div class="accordion-header" onclick="toggleAccordion('accEvent')">
+          <div class="left">
+            <div>
+              <div class="title">机构大额买入</div>
+              <div class="desc">CPCV稳健性 75% · 机构净买≥1000万</div>
+            </div>
+          </div>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-content" id="eventList">
+            <div class="loading"><div class="spinner"></div><br>加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 策略回测 -->
+    <div class="section">
+      <div class="section-title"><span class="icon">📊</span>策略回测数据</div>
+      <div class="accordion" id="accBacktest">
+        <div class="accordion-header" onclick="toggleAccordion('accBacktest')">
+          <div class="left">
+            <div>
+              <div class="title">500天实盘回测</div>
+              <div class="desc">1.5万本金 · 699笔交易</div>
+            </div>
+          </div>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-content">
+            <div class="strategy-grid" id="strategyGrid">
+              <div class="strategy-item highlight"><div class="strategy-value" id="btReturn">--</div><div class="strategy-label">总收益</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="btWinRate">--</div><div class="strategy-label">胜率</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="btTrades">--</div><div class="strategy-label">总笔数</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="btAvgReturn">--</div><div class="strategy-label">均每笔</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="btTP">--</div><div class="strategy-label">止盈笔数</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="btSL">--</div><div class="strategy-label">止损笔数</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="btMaxDD">--</div><div class="strategy-label">最大回撤</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="btFinalVal">--</div><div class="strategy-label">终值</div></div>
+            </div>
+            <div class="chart-wrap"><canvas id="cumChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作指南 -->
+    <div class="section">
+      <div class="section-title"><span class="icon">📋</span>操作指南</div>
+      <div class="tip-card">
+        <div class="tip-title">⏰ 买入时机</div>
+        <ul class="tip-list">
+          <li>每日 <strong>14:30</strong> 查看推荐，评分价即买入参考价</li>
+          <li>允许 ±0.5% 容差挂单（条件单）</li>
+          <li>价格超过 ¥75 的股票，1.5万本金买不了100股</li>
+          <li>每次最多买入 <strong>2-3只</strong>，分散风险</li>
+        </ul>
+      </div>
+      <div class="tip-card">
+        <div class="tip-title">🎯 止盈止损</div>
+        <ul class="tip-list">
+          <li>设置条件单：<strong>TP +6%</strong>（score_price × 1.06）</li>
+          <li>设置条件单：<strong>SL -4%</strong>（score_price × 0.96）</li>
+          <li>第7天 14:25 <strong>强制平仓</strong>，无论盈亏</li>
+          <li>小账户佣金5元/笔占比高，控制交易频率</li>
+        </ul>
+      </div>
+      <div class="tip-card">
+        <div class="tip-title">⚠️ 风险提示</div>
+        <ul class="tip-list">
+          <li>180天长周期验证为真实亏损策略（+58%→-12%），60天结果有误导性</li>
+          <li>隔夜跳空是最大风险：次日低开大概率触发止损</li>
+          <li>历史回测≠未来收益，仅作参考</li>
+          <li>交易成本（佣金+印花税+滑点）约 1.6%/笔</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="risk-box">
+      <div class="risk-title">⚠️ 重要声明</div>
+      <div class="risk-text">
+        本页面所有推荐和回测数据仅供学习参考，不构成投资建议。股市有风险，入市需谨慎。1.5万本金属于小资金账户，交易成本占比高，策略效果可能与回测有较大差异。请根据自身风险承受能力谨慎决策。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page: 持仓 -->
+<div class="page" id="page-portfolio">
+  <div class="container">
+    <div class="section">
+      <div class="section-title"><span class="icon">💼</span>当前持仓</div>
+      <div class="accordion open" id="accPortfolio">
+        <div class="accordion-body">
+          <div class="accordion-content" id="portfolioContent">
+            <div class="loading"><div class="spinner"></div><br>加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">📈</span>持仓概览</div>
+      <div class="accordion open" id="accPortfolioStats">
+        <div class="accordion-body">
+          <div class="accordion-content">
+            <div class="strategy-grid" id="portfolioGrid">
+              <div class="strategy-item"><div class="strategy-value" id="pfTotal">--</div><div class="strategy-label">总资产</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="pfPnl">--</div><div class="strategy-label">总盈亏</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="pfDaily">--</div><div class="strategy-label">今日盈亏</div></div>
+              <div class="strategy-item"><div class="strategy-value" id="pfRatio">--</div><div class="strategy-label">仓位</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-card">
+      <div class="tip-title">💡 持仓管理要点</div>
+      <ul class="tip-list">
+        <li>未卖出的股票不会被删除，持续跟踪</li>
+        <li>触发 TP/SL 自动结算，无需手动操作</li>
+        <li>第7天 14:25 前记得手动强平</li>
+        <li>可用资金不足时无法买入新股票</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Page: 策略 -->
+<div class="page" id="page-strategy">
+  <div class="container">
+    <div class="section">
+      <div class="section-title"><span class="icon">🧠</span>策略版本对比</div>
+      <div class="accordion open" id="accVersions">
+        <div class="accordion-body">
+          <div class="accordion-content" id="versionContent">
+            <div class="tip-card" style="margin-bottom:8px">
+              <div class="tip-title">📌 当前线上：埋伏策略 v5.0</div>
+              <ul class="tip-list">
+                <li><strong>评分函数</strong>：11因子横截面排名（gap + ma5_dev + mom_5d 三核心）</li>
+                <li><strong>买入时机</strong>：14:30 评分价，±0.5% 容差</li>
+                <li><strong>止盈止损</strong>：TP +6% / SL -4%</li>
+                <li><strong>持仓天数</strong>：最长7天，第7天14:25强平</li>
+                <li><strong>门槛</strong>：评分 ≥ 15分</li>
+                <li><strong>资金</strong>：1.5万本金，TOP 2-3只</li>
+              </ul>
+            </div>
+            <div class="tip-card" style="margin-bottom:8px">
+              <div class="tip-title">🎯 事件驱动策略（龙虎榜）</div>
+              <ul class="tip-list">
+                <li><strong>信号</strong>：龙虎榜机构净买 ≥ 1000万</li>
+                <li><strong>CPCV稳健性</strong>：75%（6/8盈）✅</li>
+                <li><strong>参数</strong>：3仓×30% · ≤3天 · TP+5%/SL-3%</li>
+                <li><strong>Alpha半衰期</strong>：仅0.4天，信号当天衰减</li>
+                <li><strong>核心发现</strong>：机构买入次日平均高开+7.69%</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🔬</span>策略演进历程</div>
+      <div class="accordion" id="accHistory">
+        <div class="accordion-header" onclick="toggleAccordion('accHistory')">
+          <div class="left">
+            <div>
+              <div class="title">12个版本 · 5轮因子挖掘</div>
+              <div class="desc">从线性加权到横截面排名</div>
+            </div>
+          </div>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-content">
+            <div class="tip-card" style="margin-bottom:8px">
+              <div class="tip-title">版本演进</div>
+              <ul class="tip-list">
+                <li>v4.0 趋势反转 → T+1 37.5% ❌</li>
+                <li>v5.0 均线粘合突破 → T+1 44.6%</li>
+                <li>v6.0 多因子融合 → T+1 46.7%</li>
+                <li>v7.0 规则分层 → T+1 49.2%（阈值32最佳）</li>
+                <li>v8.0 三力共振 → T+3 57.0%（风控最优）</li>
+                <li>v9.0 强势延续 → T+1 46.5%</li>
+                <li>横截面排名突破 → <strong>T+1 62.2%</strong> 🏆</li>
+                <li>v11.0 超短线定制 → 14:30买次日10:00卖</li>
+                <li>事件驱动(龙虎榜) → <strong>CPCV 75%</strong> ✅</li>
+              </ul>
+            </div>
+            <div class="tip-card">
+              <div class="tip-title">关键发现</div>
+              <ul class="tip-list">
+                <li>OHLCV日线T+1预测理论极限约53-56%</li>
+                <li>追涨因子（当天涨3-5%）在A股天然亏钱</li>
+                <li>小账户交易成本1.6%/笔是 #1 杀手</li>
+                <li>降低交易频率（0.9笔/周）是突破关键</li>
+                <li>事件驱动突破技术面天花板</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="risk-box">
+      <div class="risk-title">⚠️ 回测一致性风险</div>
+      <div class="risk-text">
+        v4.1策略60天回测+58.66%，180天拉长到-12.18%。月度极差从+82.86%到-87.10%。策略高度依赖特定市场微观结构，跨阶段稳定性严重不足。<strong>任何策略上线前必须做至少180天长周期验证。</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page: 学习 -->
+<div class="page" id="page-learn">
+  <div class="container">
+    <div class="section">
+      <div class="section-title"><span class="icon">📚</span>A股知识精华</div>
+
+      <div class="accordion" id="accLearn1">
+        <div class="accordion-header" onclick="toggleAccordion('accLearn1')">
+          <div class="left"><div><div class="title">因子挖掘方法论</div><div class="desc">5轮实战总结</div></div></div>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-content">
+            <div class="tip-card" style="margin-bottom:8px">
+              <div class="tip-title">因子挖掘三步法</div>
+              <ul class="tip-list">
+                <li><strong>领域学习</strong>：获取因子挖掘理论（A股特殊性、因子类型、检验标准）</li>
+                <li><strong>数据驱动计算</strong>：一次遍历全部股票×60天，同时计算35+候选因子</li>
+                <li><strong>因子交互挖掘</strong>：找2因子条件组合，发掘非线性效果</li>
+              </ul>
+            </div>
+            <div class="tip-card">
+              <div class="tip-title">评分范式演进</div>
+              <ul class="tip-list">
+                <li>线性加权（v4~v6）：Score = Σ(wi×fi)</li>
+                <li>规则分层（v7.0）：通过≥N层即推荐</li>
+                <li>三力共振（v8.0）：信号驱动</li>
+                <li>强势延续（v9.0）：高价+高均线+强动量</li>
+                <li>横截面排名（突破）：每天所有股票放一起排名对比</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" id="accLearn2">
+        <div class="accordion-header" onclick="toggleAccordion('accLearn2')">
+          <div class="left"><div><div class="title">小账户生存法则</div><div class="desc">1.5万本金的关键约束</div></div></div>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-content">
+            <div class="tip-card" style="margin-bottom:8px">
+              <div class="tip-title">交易成本计算</div>
+              <ul class="tip-list">
+                <li>佣金：max(5元, 金额×0.03%) × 2（买卖各一次）</li>
+                <li>印花税：卖出金额 × 0.1%</li>
+                <li>滑点：约 0.5%</li>
+                <li>100股×10元=1000元交易 → 总成本约 1.6%</li>
+                <li>高频交易（0.7笔/天）年成本170% → 直接爆仓</li>
+                <li>低频交易（0.9笔/周）年成本47% → 可控</li>
+              </ul>
+            </div>
+            <div class="tip-card">
+              <div class="tip-title">100股限制</div>
+              <ul class="tip-list">
+                <li>A股最小交易单位100股</li>
+                <li>1.5万本金：股价 > ¥150 只能买100股</li>
+                <li>股价 > ¥75 买不了200股</li>
+                <li>优先选低价股（¥5-50），仓位更灵活</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" id="accLearn3">
+        <div class="accordion-header" onclick="toggleAccordion('accLearn3')">
+          <div class="left"><div><div class="title">回测方法论</div><div class="desc">CPCV · Purged K-Fold · 长周期验证</div></div></div>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-content">
+            <div class="tip-card" style="margin-bottom:8px">
+              <div class="tip-title">回测周期选择</div>
+              <ul class="tip-list">
+                <li>15天：仅覆盖单一市场阶段，偏差大</li>
+                <li>60天（3个月）：覆盖不同状态，但不够</li>
+                <li><strong>180天+</strong>：暴露跨阶段风险，是最低要求</li>
+                <li>CPCV稳健性 ≥ 75% 才可信</li>
+              </ul>
+            </div>
+            <div class="tip-card">
+              <div class="tip-title">CPCV验证核心结论</div>
+              <ul class="tip-list">
+                <li>技术面v1-v6全不可信（CPCV 0-54%）</li>
+                <li>追涨型因子在A股天然亏钱</li>
+                <li>加过滤/优化反而降CPCV（75%→12%）</li>
+                <li>事件驱动（龙虎榜）是唯一CPCV可信的策略</li>
+                <li>单次回测结果不可作为上线依据</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion" id="accLearn4">
+        <div class="accordion-header" onclick="toggleAccordion('accLearn4')">
+          <div class="left"><div><div class="title">隔夜跳空风险</div><div class="desc">最强预测因子</div></div></div>
+          <span class="arrow">▶</span>
+        </div>
+        <div class="accordion-body">
+          <div class="accordion-content">
+            <div class="tip-card">
+              <div class="tip-title">跳空对胜率的影响</div>
+              <ul class="tip-list">
+                <li>低开(&lt;0%)：27%胜率，总收益-51.8%</li>
+                <li>平开/高开(≥0%)：<strong>78%胜率</strong>，总收益+119.6%</li>
+                <li>次日低开不买：胜率从44.7%提升到77.8%</li>
+                <li>建议：开盘前检查是否低开，低开则放弃</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabbar -->
+<div class="tabbar">
+  <div class="tab active" onclick="switchTab(0)" id="tab0">
+    <div class="tab-icon">🎯</div>
+    <div class="tab-label">推荐</div>
+  </div>
+  <div class="tab" onclick="switchTab(1)" id="tab1">
+    <div class="tab-icon">💼</div>
+    <div class="tab-label">持仓</div>
+  </div>
+  <div class="tab" onclick="switchTab(2)" id="tab2">
+    <div class="tab-icon">🧠</div>
+    <div class="tab-label">策略</div>
+  </div>
+  <div class="tab" onclick="switchTab(3)" id="tab3">
+    <div class="tab-icon">📚</div>
+    <div class="tab-label">学习</div>
+  </div>
+</div>
+
+<script>
+var DATA = {
+  recommendations: null,
+  jh_summary: null,
+  event_signals: null,
+  portfolio: null
+};
+
+function toggleAccordion(id) {
+  var el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function switchTab(idx) {
+  var pages = ['page-picks','page-portfolio','page-strategy','page-learn'];
+  for (var i = 0; i < pages.length; i++) {
+    document.getElementById(pages[i]).classList.toggle('active', i === idx);
+    document.getElementById('tab'+i).classList.toggle('active', i === idx);
+  }
+  window.scrollTo(0, 0);
+}
+
+function showRefreshBar(show) {
+  var bar = document.getElementById('refreshBar');
+  if (show) {
+    bar.style.width = '70%';
+    bar.classList.add('active');
+  } else {
+    bar.style.width = '100%';
+    setTimeout(function(){ bar.classList.remove('active'); bar.style.width='0'; }, 300);
+  }
+}
+
+function isMarketOpen() {
+  var d = new Date();
+  var day = d.getDay();
+  if (day === 0 || day === 6) return false;
+  var t = d.getHours() * 100 + d.getMinutes();
+  return (t >= 915 && t <= 1130) || (t >= 1300 && t <= 1500);
+}
+
+// Format date
+function fmtDate() {
+  var d = new Date();
+  var days = ['日','一','二','三','四','五','六'];
+  return (d.getMonth()+1) + '月' + d.getDate() + '日 周' + days[d.getDay()];
+}
+
+// Fetch with cache-bust
+function fetchJSON(url) {
+  return fetch(url + '?t=' + Date.now()).then(function(r) {
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  });
+}
+
+// Render picks
+function renderPicks(data) {
+  var el = document.getElementById('picksList');
+  var picks = data.top_picks || data.recommendations || [];
+  
+  if (!picks.length) {
+    el.innerHTML = '<div class="empty"><div class="icon">📭</div>暂无推荐</div>';
+    return;
+  }
+
+  // Filter for 1.5万 capital: price <= 75 (can buy 200+ shares)
+  var affordable = picks.filter(function(r) { return (r.score_price || r.price) <= 75; });
+  var expensive = picks.filter(function(r) { return (r.score_price || r.price) > 75; });
+
+  var html = '';
+  
+  if (affordable.length) {
+    html += '<div style="font-size:11px;color:var(--green);margin-bottom:8px;font-weight:600">✅ 1.5万可买入（¥75以下）</div>';
+    affordable.forEach(function(r, i) {
+      html += renderStockCard(r, i);
+    });
+  }
+  
+  if (expensive.length) {
+    html += '<div style="font-size:11px;color:var(--orange);margin:12px 0 8px;font-weight:600">⚠️ 价格较高（需更多资金）</div>';
+    expensive.forEach(function(r, i) {
+      html += renderStockCard(r, i + affordable.length);
+    });
+  }
+
+  html += '<div class="dedup-note">共 ' + picks.length + ' 只 · 可买入 ' + affordable.length + ' 只 · 更新: ' + (data.time || '--') + '</div>';
+  
+  el.innerHTML = html;
+  document.getElementById('picksCount').textContent = picks.length + '只';
+  document.getElementById('chipScanned').textContent = data.total_scanned || '--';
+  document.getElementById('chipPicks').textContent = picks.length;
+}
+
+function renderStockCard(r, i) {
+  var rankClass = i < 3 ? 'rank-' + (i+1) : 'rank-n';
+  var price = r.score_price || r.price;
+  var change = r.change || 0;
+  var changeClass = change >= 0 ? 'up' : 'down';
+  var changeSign = change >= 0 ? '+' : '';
+  
+  var signals = (r.signals || []).filter(function(s) { return s && s.length > 1; });
+  var signalHtml = signals.slice(0, 4).map(function(s) {
+    return '<span class="signal-tag' + (s.indexOf('⚠') >= 0 ? ' warn' : '') + '">' + s.replace(/[✅⚠️]/g,'') + '</span>';
+  }).join('');
+
+  return '<div class="stock-card">' +
+    '<div class="stock-rank ' + rankClass + '">' + (i+1) + '</div>' +
+    '<div class="stock-info">' +
+      '<div class="stock-name">' + (r.name||'') + ' <span class="code">' + (r.code||'') + '</span></div>' +
+      '<div class="stock-signals">' + signalHtml + '</div>' +
+    '</div>' +
+    '<div class="stock-price">' +
+      '<div class="price ' + changeClass + '">¥' + price.toFixed(2) + '</div>' +
+      '<div class="change ' + changeClass + '">' + changeSign + change.toFixed(2) + '%</div>' +
+      '<div class="stock-score">评分 ' + (r.score||0).toFixed(0) + '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+// Fetch stock names from Tencent API
+function fetchStockNames(codes) {
+  if (!codes || !codes.length) return Promise.resolve({});
+  var batch = codes.map(function(c) {
+    var prefix = c.charAt(0) === '6' ? 'sh' : 'sz';
+    return prefix + c;
+  }).join(',');
+  return fetch('https://qt.gtimg.cn/q=' + batch).then(function(r) { return r.text(); }).then(function(text) {
+    var names = {};
+    text.split(';').forEach(function(line) {
+      var m = line.match(/v_(\w+)~([^~]+)~/);
+      if (m) {
+        var code = m[1].replace(/^(sh|sz)/, '');
+        names[code] = m[2];
+      }
+    });
+    return names;
+  }).catch(function() { return {}; });
+}
+
+// Render event signals
+function renderEventSignals(data) {
+  var el = document.getElementById('eventList');
+  var signals = data.signals || [];
+  
+  if (!signals.length) {
+    el.innerHTML = '<div class="empty"><div class="icon">📭</div>暂无龙虎榜信号</div>';
+    return;
+  }
+
+  var html = '<div style="font-size:11px;color:var(--text3);margin-bottom:10px">数据日期: ' + (data.date || '--') + ' · 策略: ' + (data.strategy || 'JG_FOLLOW') + ' · CPCV ' + (data.cpcv_robustness||'--') + '%</div>';
+  
+  signals.slice(0, 8).forEach(function(s, i) {
+    var name = s.name || _eventNames[s.code] || s.code;
+    html += '<div class="event-card">' +
+      '<div class="event-header">' +
+        '<div class="event-name">' + name + '</div>' +
+        '<div class="event-code">' + (s.code || '') + '</div>' +
+      '</div>' +
+      '<div class="event-detail">' +
+        '机构净买: <strong>' + (s.jg_net_str || '--') + '</strong><br>' +
+        '总净买: <strong>' + (s.all_net_str || '--') + '</strong>' +
+      '</div>' +
+    '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+var _eventNames = {};
+
+// Render backtest
+function renderBacktest(bt) {
+  if (!bt) return;
+  document.getElementById('btReturn').textContent = '+' + (bt.total_return||0).toFixed(1) + '%';
+  document.getElementById('btWinRate').textContent = (bt.win_rate||0).toFixed(1) + '%';
+  document.getElementById('btTrades').textContent = bt.total_trades || '--';
+  document.getElementById('btAvgReturn').textContent = '+' + (bt.avg_return||0).toFixed(2) + '%';
+  document.getElementById('btTP').textContent = (bt.tp||0) + '笔';
+  document.getElementById('btSL').textContent = (bt.sl||0) + '笔';
+  document.getElementById('btMaxDD').textContent = (bt.max_drawdown||0).toFixed(1) + '%';
+  document.getElementById('btFinalVal').textContent = '¥' + (bt.final_value||0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Render portfolio
+function renderPortfolio(data) {
+  var content = document.getElementById('portfolioContent');
+  var stocks = data.stocks || [];
+  
+  if (!stocks.length) {
+    content.innerHTML = '<div class="empty"><div class="icon">📭</div>暂无持仓</div>';
+    return;
+  }
+
+  var html = '';
+  stocks.forEach(function(s) {
+    var pnl = s.pnl || 0;
+    var pnlPct = s.pnl_pct || 0;
+    var pnlClass = pnl >= 0 ? 'up' : 'down';
+    var pnlSign = pnl >= 0 ? '+' : '';
+    var barColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    var barWidth = Math.min(Math.abs(pnlPct) * 10, 100);
+
+    html += '<div class="portfolio-stock">' +
+      '<div class="portfolio-left">' +
+        '<div class="portfolio-name">' + (s.name||'') + '</div>' +
+        '<div class="portfolio-meta">' +
+          '<span>' + (s.code||'') + '</span>' +
+          '<span>' + (s.shares||0) + '股</span>' +
+          '<span>成本 ¥' + (s.cost_price||0).toFixed(2) + '</span>' +
+        '</div>' +
+        '<div class="portfolio-bar"><div class="portfolio-bar-fill" style="width:' + barWidth + '%;background:' + barColor + '"></div></div>' +
+      '</div>' +
+      '<div class="portfolio-right">' +
+        '<div class="portfolio-pnl ' + pnlClass + '">' + pnlSign + pnl.toFixed(0) + '</div>' +
+        '<div class="portfolio-pct ' + pnlClass + '">' + pnlSign + pnlPct.toFixed(2) + '%</div>' +
+      '</div>' +
+    '</div>';
+  });
+
+  content.innerHTML = html;
+
+  // Stats
+  document.getElementById('pfTotal').textContent = '¥' + (data.total_assets||0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  var totalPnl = data.total_pnl || 0;
+  var pnlEl = document.getElementById('pfPnl');
+  pnlEl.textContent = (totalPnl >= 0 ? '+' : '') + totalPnl.toFixed(0);
+  pnlEl.style.color = totalPnl >= 0 ? 'var(--red)' : 'var(--green)';
+  
+  var dailyPnl = data.daily_pnl || 0;
+  var dailyEl = document.getElementById('pfDaily');
+  dailyEl.textContent = (dailyPnl >= 0 ? '+' : '') + dailyPnl.toFixed(0);
+  dailyEl.style.color = dailyPnl >= 0 ? 'var(--red)' : 'var(--green)';
+  
+  document.getElementById('pfRatio').textContent = (data.position_ratio||0).toFixed(1) + '%';
+}
+
+// Draw cumulative chart
+function drawCumChart(cumulative) {
+  var canvas = document.getElementById('cumChart');
+  if (!canvas || !cumulative || !cumulative.length) return;
+  
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  
+  var W = rect.width;
+  var H = rect.height;
+  var pad = { top: 20, right: 10, bottom: 30, left: 40 };
+  var chartW = W - pad.left - pad.right;
+  var chartH = H - pad.top - pad.bottom;
+  
+  var values = cumulative.map(function(c) { return c.cumulative; });
+  var minV = Math.min.apply(null, values);
+  var maxV = Math.max.apply(null, values);
+  var range = maxV - minV || 1;
+  
+  // Zero line
+  var zeroY = pad.top + chartH * (1 - (0 - minV) / range);
+  
+  // Background
+  ctx.fillStyle = '#f8f8fa';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Grid lines
+  ctx.strokeStyle = 'rgba(0,0,0,.06)';
+  ctx.lineWidth = 1;
+  for (var i = 0; i <= 4; i++) {
+    var y = pad.top + chartH * i / 4;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+  }
+  
+  // Zero line
+  ctx.strokeStyle = 'rgba(0,0,0,.15)';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(pad.left, zeroY);
+  ctx.lineTo(W - pad.right, zeroY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#007aff';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  
+  var step = chartW / Math.max(cumulative.length - 1, 1);
+  cumulative.forEach(function(c, i) {
+    var x = pad.left + i * step;
+    var y = pad.top + chartH * (1 - (c.cumulative - minV) / range);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  
+  // Area fill
+  var lastX = pad.left + (cumulative.length - 1) * step;
+  var grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + chartH);
+  grad.addColorStop(0, 'rgba(0,122,255,.15)');
+  grad.addColorStop(1, 'rgba(0,122,255,.01)');
+  ctx.lineTo(lastX, zeroY);
+  ctx.lineTo(pad.left, zeroY);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  
+  // End point
+  var lastVal = values[values.length - 1];
+  var lastY = pad.top + chartH * (1 - (lastVal - minV) / range);
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+  ctx.fillStyle = lastVal >= 0 ? '#007aff' : '#ff3b30';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Labels
+  ctx.fillStyle = '#86868b';
+  ctx.font = '10px -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  for (var i = 0; i <= 4; i++) {
+    var v = minV + range * (1 - i / 4);
+    var y = pad.top + chartH * i / 4;
+    ctx.fillText(v.toFixed(0) + '%', pad.left - 4, y + 3);
+  }
+  
+  // Date labels
+  ctx.textAlign = 'center';
+  var labelCount = Math.min(6, cumulative.length);
+  var labelStep = Math.floor(cumulative.length / labelCount);
+  for (var i = 0; i < cumulative.length; i += labelStep) {
+    var x = pad.left + i * step;
+    var dateStr = cumulative[i].date || '';
+    ctx.fillText(dateStr.slice(5), x, H - 8);
+  }
+  
+  // Final value label
+  ctx.fillStyle = lastVal >= 0 ? '#007aff' : '#ff3b30';
+  ctx.font = 'bold 11px -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('终值 +' + lastVal.toFixed(1) + '%', lastX + 8, lastY - 4);
+}
+
+// Load all data
+function loadData() {
+  showRefreshBar(true);
+  
+  var promises = [
+    fetchJSON('data/recommendations.json').then(function(d) { DATA.recommendations = d; }).catch(function() {}),
+    fetchJSON('data/jh_summary.json').then(function(d) { DATA.jh_summary = d; }).catch(function() {}),
+    fetchJSON('data/v2/event_signals.json').then(function(d) { DATA.event_signals = d; }).catch(function() {}),
+    fetchJSON('data/portfolio.json').then(function(d) { DATA.portfolio = d; }).catch(function() {})
+  ];
+  
+  Promise.all(promises).then(function() {
+    showRefreshBar(false);
+    
+    if (DATA.recommendations) renderPicks(DATA.recommendations);
+    if (DATA.jh_summary) {
+      var bt = DATA.jh_summary.backtest;
+      if (bt) renderBacktest(bt);
+      if (DATA.jh_summary.cumulative) {
+        setTimeout(function() { drawCumChart(DATA.jh_summary.cumulative); }, 100);
+      }
+    }
+    // Fetch stock names for event signals, then render
+    var eventCodes = [];
+    if (DATA.event_signals && DATA.event_signals.signals) {
+      eventCodes = DATA.event_signals.signals.map(function(s) { return s.code; }).filter(Boolean);
+    }
+    fetchStockNames(eventCodes).then(function(names) {
+      _eventNames = names;
+      if (DATA.event_signals) renderEventSignals(DATA.event_signals);
+    });
+    if (DATA.portfolio) renderPortfolio(DATA.portfolio);
+    
+    // Update header
+    document.getElementById('headerDate').textContent = fmtDate();
+    
+    if (DATA.recommendations) {
+      var marketOpen = isMarketOpen();
+      var sub = '策略: 埋伏v5.0 · TP+6% SL-4% · 持仓7天 · 14:30买入';
+      if (!marketOpen) sub += ' · 休市中';
+      document.getElementById('headerSub').textContent = sub;
+    }
+  });
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  loadData();
+  
+  // Auto-refresh during market hours
+  if (isMarketOpen()) {
+    setInterval(loadData, 60000);
+  }
+  
+  // Refresh when page becomes visible
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) loadData();
+  });
+});
+
+// Handle canvas resize
+window.addEventListener('resize', function() {
+  if (DATA.jh_summary && DATA.jh_summary.cumulative) {
+    drawCumChart(DATA.jh_summary.cumulative);
+  }
+});
+</script>
+</body>
+</html>
