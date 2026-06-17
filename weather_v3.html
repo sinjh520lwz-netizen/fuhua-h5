@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>天气卡片 - 粒子特效版</title>
+<link rel="stylesheet" href="/h5/lib/leaflet.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  background: #000;
+  min-height: 100vh;
+  color: white;
+  overflow-x: hidden;
+}
+
+/* ═══ Theme Toggle ═══ */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+}
+
+.theme-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+}
+
+.theme-btn.active {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+}
+
+/* ═══ Container ═══ */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 60px 16px 40px;
+}
+
+/* ═══ Tab Bar ═══ */
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+}
+
+.tab-item {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: rgba(255,255,255,0.6);
+}
+
+.tab-item.active {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+/* ═══ Weather Cards Carousel ═══ */
+.cards-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 16px;
+  scrollbar-width: none;
+}
+
+.cards-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.weather-card {
+  flex: 0 0 calc(100% - 32px);
+  scroll-snap-align: start;
+  height: 420px;
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+/* ═══ Card Background (Real Image) ═══ */
+.card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.3s ease;
+}
+
+.weather-card:hover .card-bg {
+  transform: scale(1.05);
+}
+
+.card-bg.sunny {
+  background-image: url('/h5/images/weather/sunny.jpg');
+}
+
+.card-bg.windy {
+  background-image: url('/h5/images/weather/windy.jpg');
+}
+
+.card-bg.rainy {
+  background-image: url('/h5/images/weather/rainy.jpg');
+}
+
+.card-bg.snowy {
+  background-image: url('/h5/images/weather/snowy.jpg');
+}
+
+/* ═══ Particle Canvas ═══ */
+.card-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ═══ Glass Overlay ═══ */
+.card-glass {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2;
+}
+
+/* ═══ Card Content ═══ */
+.card-content {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-temp-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-temp {
+  font-size: 72px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -3px;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+}
+
+.card-temp .degree {
+  font-size: 40px;
+  vertical-align: top;
+  margin-left: -5px;
+}
+
+.card-status {
+  font-size: 20px;
+  font-weight: 500;
+  margin-top: 8px;
+  text-shadow: 0 1px 10px rgba(0,0,0,0.5);
+}
+
+.card-icon {
+  font-size: 56px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+
+.card-middle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.card-quote {
+  font-size: 15px;
+  font-style: italic;
+  text-align: center;
+  opacity: 0.9;
+  line-height: 1.6;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+  max-width: 280px;
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+.stat-label {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+/* ═══ Pagination ═══ */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transition: all 0.3s;
+}
+
+.dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: white;
+}
+
+/* ═══ Footer ═══ */
+.footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+/* ═══ Light Theme ═══ */
+body.light {
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+
+body.light .tab-bar {
+  background: rgba(0,0,0,0.05);
+}
+
+body.light .tab-item {
+  color: rgba(0,0,0,0.5);
+}
+
+body.light .tab-item.active {
+  background: white;
+  color: #1d1d1f;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+body.light .theme-btn {
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.1);
+  color: #1d1d1f;
+}
+
+body.light .theme-btn.active {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+body.light .card-glass {
+  background: rgba(255,255,255,0.3);
+}
+
+body.light .card-temp,
+body.light .card-status,
+body.light .card-quote,
+body.light .stat-value {
+  text-shadow: 0 1px 10px rgba(255,255,255,0.5);
+}
+
+body.light .card-bottom {
+  background: rgba(255,255,255,0.4);
+  border-color: rgba(0,0,0,0.1);
+}
+
+body.light .dot {
+  background: rgba(0,0,0,0.2);
+}
+
+body.light .dot.active {
+  background: #1d1d1f;
+}
+
+body.light .footer {
+  color: #1d1d1f;
+}
+
+/* ═══ Particles Presets ═══ */
+#particles-sunny,
+#particles-windy,
+#particles-rainy,
+#particles-snowy {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+<body>
+
+<div class="theme-toggle">
+  <button class="theme-btn active" onclick="setTheme('dark')">🌙 Dark</button>
+  <button class="theme-btn" onclick="setTheme('light')">☀️ Light</button>
+</div>
+
+<div class="container">
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchWeather(0)">☀️ Sunny</div>
+    <div class="tab-item" onclick="switchWeather(1)">💨 Windy</div>
+    <div class="tab-item" onclick="switchWeather(2)">🌧️ Rainy</div>
+    <div class="tab-item" onclick="switchWeather(3)">❄️ Snowy</div>
+  </div>
+
+  <!-- Cards Carousel -->
+  <div class="cards-carousel" id="carousel">
+    <!-- Sunny -->
+    <div class="weather-card" data-weather="sunny">
+      <div class="card-bg sunny"></div>
+      <div id="particles-sunny" class="card-particles"></div>
+      <div class="card-glass"></div>
+      <div class="card-content">
+        <div class="card-top">
+          <div class="card-temp-group">
+            <div class="card-temp">28<span class="degree">°</span></div>
+            <div class="card-status">Sunny</div>
+          </div>
+          <div class="card-icon">☀️</div>
+        </div>
+        <div class="card-middle">
+          <div class="card-quote">"Plenty of sunshine makes everything better."</div>
+        </div>
+        <div class="card-bottom">
+          <div class="stat-item">
+            <div class="stat-value">28°</div>
+            <div class="stat-label">Feels Like</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">32%</div>
+            <div class="stat-label">Humidity</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">8 km/h</div>
+            <div class="stat-label">Wind</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Windy -->
+    <div class="weather-card" data-weather="windy">
+      <div class="card-bg windy"></div>
+      <div id="particles-windy" class="card-particles"></div>
+      <div class="card-glass"></div>
+      <div class="card-content">
+        <div class="card-top">
+          <div class="card-temp-group">
+            <div class="card-temp">18<span class="degree">°</span></div>
+            <div class="card-status">Windy</div>
+          </div>
+          <div class="card-icon">💨</div>
+        </div>
+        <div class="card-middle">
+          <div class="card-quote">"Strong winds keep you on your toes."</div>
+        </div>
+        <div class="card-bottom">
+          <div class="stat-item">
+            <div class="stat-value">18°</div>
+            <div class="stat-label">Feels Like</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">45%</div>
+            <div class="stat-label">Humidity</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">32 km/h</div>
+            <div class="stat-label">Wind</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rainy -->
+    <div class="weather-card" data-weather="rainy">
+      <div class="card-bg rainy"></div>
+      <div id="particles-rainy" class="card-particles"></div>
+      <div class="card-glass"></div>
+      <div class="card-content">
+        <div class="card-top">
+          <div class="card-temp-group">
+            <div class="card-temp">16<span class="degree">°</span></div>
+            <div class="card-status">Heavy Rain</div>
+          </div>
+          <div class="card-icon">🌧️</div>
+        </div>
+        <div class="card-middle">
+          <div class="card-quote">"Heavy rain and thunder, be careful outside."</div>
+        </div>
+        <div class="card-bottom">
+          <div class="stat-item">
+            <div class="stat-value">16°</div>
+            <div class="stat-label">Feels Like</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">95%</div>
+            <div class="stat-label">Humidity</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">12 mm</div>
+            <div class="stat-label">Precipitation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Snowy -->
+    <div class="weather-card" data-weather="snowy">
+      <div class="card-bg snowy"></div>
+      <div id="particles-snowy" class="card-particles"></div>
+      <div class="card-glass"></div>
+      <div class="card-content">
+        <div class="card-top">
+          <div class="card-temp-group">
+            <div class="card-temp">-4<span class="degree">°</span></div>
+            <div class="card-status">Snowy</div>
+          </div>
+          <div class="card-icon">❄️</div>
+        </div>
+        <div class="card-middle">
+          <div class="card-quote">"Snow is falling, turn the world into white."</div>
+        </div>
+        <div class="card-bottom">
+          <div class="stat-item">
+            <div class="stat-value">-8°</div>
+            <div class="stat-label">Feels Like</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">80%</div>
+            <div class="stat-label">Humidity</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">15 cm</div>
+            <div class="stat-label">Snow</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Updated just now</span>
+    <span>🔄</span>
+  </div>
+</div>
+
+<script src="/h5/lib/particles.js"></script>
+<script>
+/* ═══ Theme ═══ */
+function setTheme(theme) {
+  document.body.className = theme;
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.includes(theme === 'dark' ? 'Dark' : 'Light'));
+  });
+}
+
+/* ═══ Weather Switch ═══ */
+let currentWeather = 0;
+
+function switchWeather(index) {
+  currentWeather = index;
+  
+  // Update tabs
+  document.querySelectorAll('.tab-item').forEach((tab, i) => {
+    tab.classList.toggle('active', i === index);
+  });
+  
+  // Scroll to card
+  const carousel = document.getElementById('carousel');
+  const cardWidth = carousel.children[0].offsetWidth + 16;
+  carousel.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+  
+  // Update dots
+  document.querySelectorAll('.dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === index);
+  });
+}
+
+/* ═══ Scroll Sync ═══ */
+const carousel = document.getElementById('carousel');
+carousel.addEventListener('scroll', () => {
+  const cardWidth = carousel.children[0].offsetWidth + 16;
+  const index = Math.round(carousel.scrollLeft / cardWidth);
+  
+  if (index !== currentWeather) {
+    currentWeather = index;
+    
+    document.querySelectorAll('.tab-item').forEach((tab, i) => {
+      tab.classList.toggle('active', i === index);
+    });
+    
+    document.querySelectorAll('.dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  }
+});
+
+/* ═══ Particles.js Configurations ═══ */
+const particlesConfig = {
+  sunny: {
+    particles: {
+      number: { value: 30, density: { enable: true, value_area: 800 } },
+      color: { value: "#FFD700" },
+      shape: { type: "circle" },
+      opacity: { value: 0.5, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false } },
+      size: { value: 3, random: true, anim: { enable: true, speed: 2, size_min: 0.1, sync: false } },
+      line_linked: { enable: false },
+      move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out", bounce: false }
+    },
+    interactivity: { detect_on: "canvas", events: { onhover: { enable: false }, onclick: { enable: false }, resize: true } },
+    retina_detect: true
+  },
+  
+  windy: {
+    particles: {
+      number: { value: 50, density: { enable: true, value_area: 800 } },
+      color: { value: "#ffffff" },
+      shape: { type: "circle" },
+      opacity: { value: 0.3, random: true },
+      size: { value: 2, random: true },
+      line_linked: { enable: false },
+      move: { enable: true, speed: 8, direction: "right", random: false, straight: true, out_mode: "out", bounce: false }
+    },
+    interactivity: { detect_on: "canvas", events: { onhover: { enable: false }, onclick: { enable: false }, resize: true } },
+    retina_detect: true
+  },
+  
+  rainy: {
+    particles: {
+      number: { value: 100, density: { enable: true, value_area: 800 } },
+      color: { value: "#a0c4ff" },
+      shape: { type: "edge" },
+      opacity: { value: 0.5, random: true },
+      size: { value: 3, random: true },
+      line_linked: { enable: false },
+      move: { enable: true, speed: 10, direction: "bottom", random: false, straight: true, out_mode: "out", bounce: false }
+    },
+    interactivity: { detect_on: "canvas", events: { onhover: { enable: false }, onclick: { enable: false }, resize: true } },
+    retina_detect: true
+  },
+  
+  snowy: {
+    particles: {
+      number: { value: 60, density: { enable: true, value_area: 800 } },
+      color: { value: "#ffffff" },
+      shape: { type: "circle" },
+      opacity: { value: 0.8, random: true, anim: { enable: true, speed: 0.5, opacity_min: 0.3, sync: false } },
+      size: { value: 4, random: true, anim: { enable: true, speed: 1, size_min: 1, sync: false } },
+      line_linked: { enable: false },
+      move: { enable: true, speed: 2, direction: "bottom", random: true, straight: false, out_mode: "out", bounce: false }
+    },
+    interactivity: { detect_on: "canvas", events: { onhover: { enable: false }, onclick: { enable: false }, resize: true } },
+    retina_detect: true
+  }
+};
+
+/* ═══ Initialize Particles ═══ */
+function initParticles() {
+  // Load particles.js for each weather type
+  Object.keys(particlesConfig).forEach(weather => {
+    const elementId = `particles-${weather}`;
+    const element = document.getElementById(elementId);
+    
+    if (element) {
+      // Create a unique config for this element
+      const config = JSON.parse(JSON.stringify(particlesConfig[weather]));
+      
+      // Initialize particles
+      particlesJS(elementId, config);
+    }
+  });
+}
+
+/* ═══ Initialize on Load ═══ */
+window.addEventListener('load', () => {
+  // Wait a bit for images to load
+  setTimeout(initParticles, 500);
+});
+</script>
+</body>
+</html>
