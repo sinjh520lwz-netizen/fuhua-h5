@@ -1,0 +1,9 @@
+{
+  "name": "富华渔业管理",
+  "short_name": "富华渔业",
+  "start_url": "/h5/",
+  "display": "standalone",
+  "background_color": "#F4F6F7",
+  "theme_color": "#1A5276",
+  "icons": []
+}
