@@ -1,0 +1,2441 @@
+{
+  "version": "JH Screener v4.0",
+  "full_name": "JH Screener JH Screener v4.0",
+  "strategy": "埋伏策略v4.0（11因子评分，AI仅在关键时点运行）",
+  "backtest": {
+    "params": {
+      "tp": 6.0,
+      "sl": 4.0,
+      "threshold": 15,
+      "hold_days": 7,
+      "buy_time": "14:30",
+      "optimized_weights": [
+        2.28,
+        0.48,
+        1.75,
+        0.5,
+        0.26,
+        1.53,
+        1.7,
+        0.52
+      ],
+      "sentiment": {
+        "panic": -1.5,
+        "caution": -0.5,
+        "bull": 2.0
+      }
+    },
+    "total_trades": 517,
+    "tp": 258,
+    "sl": 187,
+    "hold": 72,
+    "win_rate": 49.9,
+    "total_return": 241.71,
+    "avg_return": 0.9,
+    "tp_pct": 49.9,
+    "sl_pct": 36.2,
+    "hold_pct": 13.9,
+    "days": 490,
+    "init_capital": 15000.0,
+    "final_value": 51257.11,
+    "total_profit": 36257.11,
+    "max_drawdown": 14.07,
+    "avg_deviation": 4.14
+  },
+  "recommendations": [
+    {
+      "name": "奥瑞德",
+      "code": "600666",
+      "score": 64.3,
+      "change": 0.87,
+      "price": 4.63,
+      "score_price": 4.63
+    },
+    {
+      "name": "山金国际",
+      "code": "000975",
+      "score": 62.7,
+      "change": 0.46,
+      "price": 21.75,
+      "score_price": 21.75
+    },
+    {
+      "name": "深圳华强",
+      "code": "000062",
+      "score": 61.2,
+      "change": 1.25,
+      "price": 31.6,
+      "score_price": 31.6
+    },
+    {
+      "name": "中科曙光",
+      "code": "603019",
+      "score": 60.3,
+      "change": 2.02,
+      "price": 86.18,
+      "score_price": 86.18
+    },
+    {
+      "name": "浪潮信息",
+      "code": "000977",
+      "score": 60.2,
+      "change": 2.95,
+      "price": 64.14,
+      "score_price": 64.14
+    }
+  ],
+  "updated_at": "2026-06-17 14:30:04",
+  "cumulative": [
+    {
+      "date": "2024-06-03",
+      "capital": 11730.29,
+      "position_value": 3345.0,
+      "total": 15075.29
+    },
+    {
+      "date": "2024-06-04",
+      "capital": 346.95,
+      "position_value": 14985.0,
+      "total": 15331.95
+    },
+    {
+      "date": "2024-06-05",
+      "capital": 346.95,
+      "position_value": 14719.0,
+      "total": 15065.95
+    },
+    {
+      "date": "2024-06-06",
+      "capital": 1442.17,
+      "position_value": 13483.0,
+      "total": 14925.17
+    },
+    {
+      "date": "2024-06-07",
+      "capital": 1512.24,
+      "position_value": 13460.0,
+      "total": 14972.24
+    },
+    {
+      "date": "2024-06-11",
+      "capital": 1507.24,
+      "position_value": 13372.0,
+      "total": 14879.24
+    },
+    {
+      "date": "2024-06-12",
+      "capital": 1507.24,
+      "position_value": 13392.0,
+      "total": 14899.24
+    },
+    {
+      "date": "2024-06-13",
+      "capital": 1502.24,
+      "position_value": 13398.0,
+      "total": 14900.24
+    },
+    {
+      "date": "2024-06-14",
+      "capital": 11635.87,
+      "position_value": 3418.0,
+      "total": 15053.87
+    },
+    {
+      "date": "2024-06-17",
+      "capital": 8912.58,
+      "position_value": 6204.0,
+      "total": 15116.58
+    },
+    {
+      "date": "2024-06-18",
+      "capital": 8907.58,
+      "position_value": 6238.0,
+      "total": 15145.58
+    },
+    {
+      "date": "2024-06-19",
+      "capital": 546.69,
+      "position_value": 14805.0,
+      "total": 15351.69
+    },
+    {
+      "date": "2024-06-20",
+      "capital": 2964.19,
+      "position_value": 12230.0,
+      "total": 15194.19
+    },
+    {
+      "date": "2024-06-21",
+      "capital": 6763.96,
+      "position_value": 8390.0,
+      "total": 15153.96
+    },
+    {
+      "date": "2024-06-24",
+      "capital": 2040.42,
+      "position_value": 13242.0,
+      "total": 15282.42
+    },
+    {
+      "date": "2024-06-25",
+      "capital": 2190.44,
+      "position_value": 13119.0,
+      "total": 15309.44
+    },
+    {
+      "date": "2024-06-26",
+      "capital": 8089.68,
+      "position_value": 7210.0,
+      "total": 15299.68
+    },
+    {
+      "date": "2024-06-27",
+      "capital": 783.64,
+      "position_value": 14514.0,
+      "total": 15297.64
+    },
+    {
+      "date": "2024-06-28",
+      "capital": 95.35,
+      "position_value": 16435.0,
+      "total": 16530.35
+    },
+    {
+      "date": "2024-07-01",
+      "capital": 487.57,
+      "position_value": 16130.0,
+      "total": 16617.57
+    },
+    {
+      "date": "2024-07-02",
+      "capital": 998.56,
+      "position_value": 15988.0,
+      "total": 16986.56
+    },
+    {
+      "date": "2024-07-03",
+      "capital": 1041.79,
+      "position_value": 15631.0,
+      "total": 16672.79
+    },
+    {
+      "date": "2024-07-04",
+      "capital": 1464.67,
+      "position_value": 15376.0,
+      "total": 16840.67
+    },
+    {
+      "date": "2024-07-05",
+      "capital": 4705.09,
+      "position_value": 12071.0,
+      "total": 16776.09
+    },
+    {
+      "date": "2024-07-08",
+      "capital": 6477.08,
+      "position_value": 10355.0,
+      "total": 16832.08
+    },
+    {
+      "date": "2024-07-09",
+      "capital": 2196.04,
+      "position_value": 15513.0,
+      "total": 17709.04
+    },
+    {
+      "date": "2024-07-10",
+      "capital": 4747.95,
+      "position_value": 13506.0,
+      "total": 18253.95
+    },
+    {
+      "date": "2024-07-11",
+      "capital": 495.24,
+      "position_value": 18247.0,
+      "total": 18742.24
+    },
+    {
+      "date": "2024-07-12",
+      "capital": 495.24,
+      "position_value": 18042.0,
+      "total": 18537.24
+    },
+    {
+      "date": "2024-07-15",
+      "capital": 495.24,
+      "position_value": 17629.0,
+      "total": 18124.24
+    },
+    {
+      "date": "2024-07-16",
+      "capital": 495.24,
+      "position_value": 17969.0,
+      "total": 18464.24
+    },
+    {
+      "date": "2024-07-17",
+      "capital": 495.24,
+      "position_value": 17734.0,
+      "total": 18229.24
+    },
+    {
+      "date": "2024-07-18",
+      "capital": 2713.57,
+      "position_value": 15349.0,
+      "total": 18062.57
+    },
+    {
+      "date": "2024-07-19",
+      "capital": 446.03,
+      "position_value": 17866.0,
+      "total": 18312.03
+    },
+    {
+      "date": "2024-07-22",
+      "capital": 15864.74,
+      "position_value": 2276.0,
+      "total": 18140.74
+    },
+    {
+      "date": "2024-07-23",
+      "capital": 6306.32,
+      "position_value": 12169.0,
+      "total": 18475.32
+    },
+    {
+      "date": "2024-07-24",
+      "capital": 10295.89,
+      "position_value": 8135.0,
+      "total": 18430.89
+    },
+    {
+      "date": "2024-07-25",
+      "capital": 10295.89,
+      "position_value": 8078.0,
+      "total": 18373.89
+    },
+    {
+      "date": "2024-07-26",
+      "capital": 1786.04,
+      "position_value": 17417.0,
+      "total": 19203.04
+    },
+    {
+      "date": "2024-07-29",
+      "capital": 1895.24,
+      "position_value": 16906.0,
+      "total": 18801.24
+    },
+    {
+      "date": "2024-07-30",
+      "capital": 5679.15,
+      "position_value": 12929.0,
+      "total": 18608.15
+    },
+    {
+      "date": "2024-07-31",
+      "capital": 843.54,
+      "position_value": 17964.0,
+      "total": 18807.54
+    },
+    {
+      "date": "2024-08-01",
+      "capital": 1589.67,
+      "position_value": 17641.0,
+      "total": 19230.67
+    },
+    {
+      "date": "2024-08-02",
+      "capital": 4604.13,
+      "position_value": 14014.0,
+      "total": 18618.13
+    },
+    {
+      "date": "2024-08-05",
+      "capital": 18309.89,
+      "position_value": 0.0,
+      "total": 18309.89
+    },
+    {
+      "date": "2024-08-06",
+      "capital": 18299.89,
+      "position_value": 0,
+      "total": 18299.89
+    },
+    {
+      "date": "2024-08-07",
+      "capital": 18294.89,
+      "position_value": 0.0,
+      "total": 18294.89
+    },
+    {
+      "date": "2024-08-08",
+      "capital": 18284.89,
+      "position_value": 0.0,
+      "total": 18284.89
+    },
+    {
+      "date": "2024-08-09",
+      "capital": 14320.0,
+      "position_value": 4158.0,
+      "total": 18478.0
+    },
+    {
+      "date": "2024-08-12",
+      "capital": 5806.06,
+      "position_value": 12930.0,
+      "total": 18736.06
+    },
+    {
+      "date": "2024-08-13",
+      "capital": 2033.65,
+      "position_value": 16911.0,
+      "total": 18944.65
+    },
+    {
+      "date": "2024-08-14",
+      "capital": 1278.53,
+      "position_value": 18239.0,
+      "total": 19517.53
+    },
+    {
+      "date": "2024-08-15",
+      "capital": 1278.53,
+      "position_value": 18144.0,
+      "total": 19422.53
+    },
+    {
+      "date": "2024-08-16",
+      "capital": 869.44,
+      "position_value": 19092.0,
+      "total": 19961.44
+    },
+    {
+      "date": "2024-08-19",
+      "capital": 781.09,
+      "position_value": 19107.0,
+      "total": 19888.09
+    },
+    {
+      "date": "2024-08-20",
+      "capital": 196.13,
+      "position_value": 19791.0,
+      "total": 19987.13
+    },
+    {
+      "date": "2024-08-21",
+      "capital": 782.42,
+      "position_value": 19102.0,
+      "total": 19884.42
+    },
+    {
+      "date": "2024-08-22",
+      "capital": 148.1,
+      "position_value": 20115.0,
+      "total": 20263.1
+    },
+    {
+      "date": "2024-08-23",
+      "capital": 207.59,
+      "position_value": 20810.0,
+      "total": 21017.59
+    },
+    {
+      "date": "2024-08-26",
+      "capital": 612.56,
+      "position_value": 20458.0,
+      "total": 21070.56
+    },
+    {
+      "date": "2024-08-27",
+      "capital": 612.56,
+      "position_value": 20300.0,
+      "total": 20912.56
+    },
+    {
+      "date": "2024-08-28",
+      "capital": 612.56,
+      "position_value": 20155.0,
+      "total": 20767.56
+    },
+    {
+      "date": "2024-08-29",
+      "capital": 2806.26,
+      "position_value": 17833.0,
+      "total": 20639.26
+    },
+    {
+      "date": "2024-08-30",
+      "capital": 850.83,
+      "position_value": 20236.0,
+      "total": 21086.83
+    },
+    {
+      "date": "2024-09-02",
+      "capital": 947.22,
+      "position_value": 19959.0,
+      "total": 20906.22
+    },
+    {
+      "date": "2024-09-03",
+      "capital": 947.22,
+      "position_value": 19955.0,
+      "total": 20902.22
+    },
+    {
+      "date": "2024-09-04",
+      "capital": 15867.65,
+      "position_value": 4827.0,
+      "total": 20694.65
+    },
+    {
+      "date": "2024-09-05",
+      "capital": 10789.25,
+      "position_value": 9993.0,
+      "total": 20782.25
+    },
+    {
+      "date": "2024-09-06",
+      "capital": 1055.77,
+      "position_value": 19626.0,
+      "total": 20681.77
+    },
+    {
+      "date": "2024-09-09",
+      "capital": 1055.77,
+      "position_value": 19381.0,
+      "total": 20436.77
+    },
+    {
+      "date": "2024-09-10",
+      "capital": 385.42,
+      "position_value": 20682.0,
+      "total": 21067.42
+    },
+    {
+      "date": "2024-09-11",
+      "capital": 12157.28,
+      "position_value": 8516.0,
+      "total": 20673.28
+    },
+    {
+      "date": "2024-09-12",
+      "capital": 9565.28,
+      "position_value": 11254.0,
+      "total": 20819.28
+    },
+    {
+      "date": "2024-09-13",
+      "capital": 20.99,
+      "position_value": 20793.0,
+      "total": 20813.99
+    },
+    {
+      "date": "2024-09-18",
+      "capital": 2758.46,
+      "position_value": 18792.0,
+      "total": 21550.46
+    },
+    {
+      "date": "2024-09-19",
+      "capital": 354.26,
+      "position_value": 22069.0,
+      "total": 22423.26
+    },
+    {
+      "date": "2024-09-20",
+      "capital": 2158.1,
+      "position_value": 20596.0,
+      "total": 22754.1
+    },
+    {
+      "date": "2024-09-23",
+      "capital": 7453.94,
+      "position_value": 15114.0,
+      "total": 22567.94
+    },
+    {
+      "date": "2024-09-24",
+      "capital": 455.65,
+      "position_value": 23957.0,
+      "total": 24412.65
+    },
+    {
+      "date": "2024-09-25",
+      "capital": 3186.87,
+      "position_value": 22031.0,
+      "total": 25217.87
+    },
+    {
+      "date": "2024-09-26",
+      "capital": 15104.78,
+      "position_value": 10153.0,
+      "total": 25257.78
+    },
+    {
+      "date": "2024-09-27",
+      "capital": 19460.92,
+      "position_value": 5798.0,
+      "total": 25258.92
+    },
+    {
+      "date": "2024-09-30",
+      "capital": 25342.66,
+      "position_value": 0,
+      "total": 25342.66
+    },
+    {
+      "date": "2024-10-08",
+      "capital": 25342.66,
+      "position_value": 0,
+      "total": 25342.66
+    },
+    {
+      "date": "2024-10-09",
+      "capital": 25342.66,
+      "position_value": 0,
+      "total": 25342.66
+    },
+    {
+      "date": "2024-10-10",
+      "capital": 25342.66,
+      "position_value": 0,
+      "total": 25342.66
+    },
+    {
+      "date": "2024-10-11",
+      "capital": 25342.66,
+      "position_value": 0,
+      "total": 25342.66
+    },
+    {
+      "date": "2024-10-14",
+      "capital": 25337.66,
+      "position_value": 0.0,
+      "total": 25337.66
+    },
+    {
+      "date": "2024-10-15",
+      "capital": 25337.66,
+      "position_value": 0.0,
+      "total": 25337.66
+    },
+    {
+      "date": "2024-10-16",
+      "capital": 21078.29,
+      "position_value": 4206.0,
+      "total": 25284.29
+    },
+    {
+      "date": "2024-10-17",
+      "capital": 21408.97,
+      "position_value": 4163.0,
+      "total": 25571.97
+    },
+    {
+      "date": "2024-10-18",
+      "capital": 25802.63,
+      "position_value": 0,
+      "total": 25802.63
+    },
+    {
+      "date": "2024-10-21",
+      "capital": 25802.63,
+      "position_value": 0,
+      "total": 25802.63
+    },
+    {
+      "date": "2024-10-22",
+      "capital": 16454.19,
+      "position_value": 9657.0,
+      "total": 26111.19
+    },
+    {
+      "date": "2024-10-23",
+      "capital": 14404.26,
+      "position_value": 11961.0,
+      "total": 26365.26
+    },
+    {
+      "date": "2024-10-24",
+      "capital": 14693.48,
+      "position_value": 12193.0,
+      "total": 26886.48
+    },
+    {
+      "date": "2024-10-25",
+      "capital": 1312.25,
+      "position_value": 24985.0,
+      "total": 26297.25
+    },
+    {
+      "date": "2024-10-28",
+      "capital": 1312.25,
+      "position_value": 26156.0,
+      "total": 27468.25
+    },
+    {
+      "date": "2024-10-29",
+      "capital": 15446.07,
+      "position_value": 11957.0,
+      "total": 27403.07
+    },
+    {
+      "date": "2024-10-30",
+      "capital": 15446.07,
+      "position_value": 11821.0,
+      "total": 27267.07
+    },
+    {
+      "date": "2024-10-31",
+      "capital": 12653.78,
+      "position_value": 14440.0,
+      "total": 27093.78
+    },
+    {
+      "date": "2024-11-01",
+      "capital": 26921.07,
+      "position_value": 0,
+      "total": 26921.07
+    },
+    {
+      "date": "2024-11-04",
+      "capital": 26921.07,
+      "position_value": 0,
+      "total": 26921.07
+    },
+    {
+      "date": "2024-11-05",
+      "capital": 22165.98,
+      "position_value": 4745.0,
+      "total": 26910.98
+    },
+    {
+      "date": "2024-11-06",
+      "capital": 22165.98,
+      "position_value": 4640.0,
+      "total": 26805.98
+    },
+    {
+      "date": "2024-11-07",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-08",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-11",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-12",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-13",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-14",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-15",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-18",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-19",
+      "capital": 26713.3,
+      "position_value": 0,
+      "total": 26713.3
+    },
+    {
+      "date": "2024-11-20",
+      "capital": 17815.11,
+      "position_value": 9125.0,
+      "total": 26940.11
+    },
+    {
+      "date": "2024-11-21",
+      "capital": 140.43,
+      "position_value": 26792.0,
+      "total": 26932.43
+    },
+    {
+      "date": "2024-11-22",
+      "capital": 15014.16,
+      "position_value": 10837.0,
+      "total": 25851.16
+    },
+    {
+      "date": "2024-11-25",
+      "capital": 25548.51,
+      "position_value": 0,
+      "total": 25548.51
+    },
+    {
+      "date": "2024-11-26",
+      "capital": 21605.7,
+      "position_value": 3946.0,
+      "total": 25551.7
+    },
+    {
+      "date": "2024-11-27",
+      "capital": 17731.82,
+      "position_value": 7907.0,
+      "total": 25638.82
+    },
+    {
+      "date": "2024-11-28",
+      "capital": 12968.74,
+      "position_value": 12433.0,
+      "total": 25401.74
+    },
+    {
+      "date": "2024-11-29",
+      "capital": 1911.39,
+      "position_value": 23867.0,
+      "total": 25778.39
+    },
+    {
+      "date": "2024-12-02",
+      "capital": 2181.52,
+      "position_value": 24198.0,
+      "total": 26379.52
+    },
+    {
+      "date": "2024-12-03",
+      "capital": 83.08,
+      "position_value": 25772.0,
+      "total": 25855.08
+    },
+    {
+      "date": "2024-12-04",
+      "capital": 83.08,
+      "position_value": 25391.0,
+      "total": 25474.08
+    },
+    {
+      "date": "2024-12-05",
+      "capital": 753.31,
+      "position_value": 24928.0,
+      "total": 25681.31
+    },
+    {
+      "date": "2024-12-06",
+      "capital": 2775.94,
+      "position_value": 23777.0,
+      "total": 26552.94
+    },
+    {
+      "date": "2024-12-09",
+      "capital": 2235.07,
+      "position_value": 23742.0,
+      "total": 25977.07
+    },
+    {
+      "date": "2024-12-10",
+      "capital": 2685.7,
+      "position_value": 24234.0,
+      "total": 26919.7
+    },
+    {
+      "date": "2024-12-11",
+      "capital": 8159.55,
+      "position_value": 18694.0,
+      "total": 26853.55
+    },
+    {
+      "date": "2024-12-12",
+      "capital": 14396.9,
+      "position_value": 12311.0,
+      "total": 26707.9
+    },
+    {
+      "date": "2024-12-13",
+      "capital": 17604.49,
+      "position_value": 8710.0,
+      "total": 26314.49
+    },
+    {
+      "date": "2024-12-16",
+      "capital": 7593.05,
+      "position_value": 18491.0,
+      "total": 26084.05
+    },
+    {
+      "date": "2024-12-17",
+      "capital": 668.02,
+      "position_value": 25086.0,
+      "total": 25754.02
+    },
+    {
+      "date": "2024-12-18",
+      "capital": 271.6,
+      "position_value": 26287.0,
+      "total": 26558.6
+    },
+    {
+      "date": "2024-12-19",
+      "capital": 4423.38,
+      "position_value": 22282.0,
+      "total": 26705.38
+    },
+    {
+      "date": "2024-12-20",
+      "capital": 326.67,
+      "position_value": 26708.0,
+      "total": 27034.67
+    },
+    {
+      "date": "2024-12-23",
+      "capital": 328.85,
+      "position_value": 26764.0,
+      "total": 27092.85
+    },
+    {
+      "date": "2024-12-24",
+      "capital": 2004.45,
+      "position_value": 25593.0,
+      "total": 27597.45
+    },
+    {
+      "date": "2024-12-25",
+      "capital": 2004.45,
+      "position_value": 25290.0,
+      "total": 27294.45
+    },
+    {
+      "date": "2024-12-26",
+      "capital": 68.0,
+      "position_value": 27645.0,
+      "total": 27713.0
+    },
+    {
+      "date": "2024-12-27",
+      "capital": 583.04,
+      "position_value": 27104.0,
+      "total": 27687.04
+    },
+    {
+      "date": "2024-12-30",
+      "capital": 123.39,
+      "position_value": 27649.0,
+      "total": 27772.39
+    },
+    {
+      "date": "2024-12-31",
+      "capital": 5688.89,
+      "position_value": 21199.0,
+      "total": 26887.89
+    },
+    {
+      "date": "2025-01-02",
+      "capital": 26298.68,
+      "position_value": 0,
+      "total": 26298.68
+    },
+    {
+      "date": "2025-01-03",
+      "capital": 21703.54,
+      "position_value": 4671.0,
+      "total": 26374.54
+    },
+    {
+      "date": "2025-01-06",
+      "capital": 11780.58,
+      "position_value": 14919.0,
+      "total": 26699.58
+    },
+    {
+      "date": "2025-01-07",
+      "capital": 21689.05,
+      "position_value": 4806.0,
+      "total": 26495.05
+    },
+    {
+      "date": "2025-01-08",
+      "capital": 21689.05,
+      "position_value": 4755.0,
+      "total": 26444.05
+    },
+
+... [OUTPUT TRUNCATED - 12365 chars omitted out of 62365 total] ...
+
+l": 39874.89
+    },
+    {
+      "date": "2025-06-13",
+      "capital": 12709.93,
+      "position_value": 27091.0,
+      "total": 39800.93
+    },
+    {
+      "date": "2025-06-16",
+      "capital": 510.66,
+      "position_value": 39628.0,
+      "total": 40138.66
+    },
+    {
+      "date": "2025-06-17",
+      "capital": 818.55,
+      "position_value": 39928.0,
+      "total": 40746.55
+    },
+    {
+      "date": "2025-06-18",
+      "capital": 111.27,
+      "position_value": 41514.0,
+      "total": 41625.27
+    },
+    {
+      "date": "2025-06-19",
+      "capital": 111.27,
+      "position_value": 41358.0,
+      "total": 41469.27
+    },
+    {
+      "date": "2025-06-20",
+      "capital": 596.83,
+      "position_value": 40903.0,
+      "total": 41499.83
+    },
+    {
+      "date": "2025-06-23",
+      "capital": 15160.99,
+      "position_value": 26356.0,
+      "total": 41516.99
+    },
+    {
+      "date": "2025-06-24",
+      "capital": 9878.12,
+      "position_value": 32651.0,
+      "total": 42529.12
+    },
+    {
+      "date": "2025-06-25",
+      "capital": 22070.53,
+      "position_value": 20709.0,
+      "total": 42779.53
+    },
+    {
+      "date": "2025-06-26",
+      "capital": 15868.43,
+      "position_value": 26976.0,
+      "total": 42844.43
+    },
+    {
+      "date": "2025-06-27",
+      "capital": 15868.43,
+      "position_value": 26527.0,
+      "total": 42395.43
+    },
+    {
+      "date": "2025-06-30",
+      "capital": 796.87,
+      "position_value": 41670.0,
+      "total": 42466.87
+    },
+    {
+      "date": "2025-07-01",
+      "capital": 12.68,
+      "position_value": 43390.0,
+      "total": 43402.68
+    },
+    {
+      "date": "2025-07-02",
+      "capital": 15696.56,
+      "position_value": 28384.0,
+      "total": 44080.56
+    },
+    {
+      "date": "2025-07-03",
+      "capital": 3056.68,
+      "position_value": 41110.0,
+      "total": 44166.68
+    },
+    {
+      "date": "2025-07-04",
+      "capital": 2967.39,
+      "position_value": 40958.0,
+      "total": 43925.39
+    },
+    {
+      "date": "2025-07-07",
+      "capital": 8.08,
+      "position_value": 43434.0,
+      "total": 43442.08
+    },
+    {
+      "date": "2025-07-08",
+      "capital": 8.08,
+      "position_value": 44003.0,
+      "total": 44011.08
+    },
+    {
+      "date": "2025-07-09",
+      "capital": 660.76,
+      "position_value": 42966.0,
+      "total": 43626.76
+    },
+    {
+      "date": "2025-07-10",
+      "capital": 86.07,
+      "position_value": 43992.0,
+      "total": 44078.07
+    },
+    {
+      "date": "2025-07-11",
+      "capital": 19789.05,
+      "position_value": 24952.0,
+      "total": 44741.05
+    },
+    {
+      "date": "2025-07-14",
+      "capital": 20000.3,
+      "position_value": 24743.0,
+      "total": 44743.3
+    },
+    {
+      "date": "2025-07-15",
+      "capital": 20000.3,
+      "position_value": 24760.0,
+      "total": 44760.3
+    },
+    {
+      "date": "2025-07-16",
+      "capital": 74.47,
+      "position_value": 44370.0,
+      "total": 44444.47
+    },
+    {
+      "date": "2025-07-17",
+      "capital": 820.62,
+      "position_value": 44512.0,
+      "total": 45332.62
+    },
+    {
+      "date": "2025-07-18",
+      "capital": 1231.19,
+      "position_value": 44014.0,
+      "total": 45245.19
+    },
+    {
+      "date": "2025-07-21",
+      "capital": 5703.63,
+      "position_value": 39525.0,
+      "total": 45228.63
+    },
+    {
+      "date": "2025-07-22",
+      "capital": 7879.89,
+      "position_value": 37662.0,
+      "total": 45541.89
+    },
+    {
+      "date": "2025-07-23",
+      "capital": 18183.9,
+      "position_value": 27506.0,
+      "total": 45689.9
+    },
+    {
+      "date": "2025-07-24",
+      "capital": 18183.9,
+      "position_value": 28074.0,
+      "total": 46257.9
+    },
+    {
+      "date": "2025-07-25",
+      "capital": 26912.53,
+      "position_value": 19444.0,
+      "total": 46356.53
+    },
+    {
+      "date": "2025-07-28",
+      "capital": 20961.98,
+      "position_value": 25415.0,
+      "total": 46376.98
+    },
+    {
+      "date": "2025-07-29",
+      "capital": 12224.92,
+      "position_value": 34549.0,
+      "total": 46773.92
+    },
+    {
+      "date": "2025-07-30",
+      "capital": 12224.92,
+      "position_value": 34012.0,
+      "total": 46236.92
+    },
+    {
+      "date": "2025-07-31",
+      "capital": 18449.12,
+      "position_value": 27295.0,
+      "total": 45744.12
+    },
+    {
+      "date": "2025-08-01",
+      "capital": 19946.35,
+      "position_value": 25668.0,
+      "total": 45614.35
+    },
+    {
+      "date": "2025-08-04",
+      "capital": 603.86,
+      "position_value": 45849.0,
+      "total": 46452.86
+    },
+    {
+      "date": "2025-08-05",
+      "capital": 47.49,
+      "position_value": 47541.0,
+      "total": 47588.49
+    },
+    {
+      "date": "2025-08-06",
+      "capital": 319.54,
+      "position_value": 47437.0,
+      "total": 47756.54
+    },
+    {
+      "date": "2025-08-07",
+      "capital": 2014.73,
+      "position_value": 46231.0,
+      "total": 48245.73
+    },
+    {
+      "date": "2025-08-08",
+      "capital": 11058.82,
+      "position_value": 36602.0,
+      "total": 47660.82
+    },
+    {
+      "date": "2025-08-11",
+      "capital": 19247.23,
+      "position_value": 29571.0,
+      "total": 48818.23
+    },
+    {
+      "date": "2025-08-12",
+      "capital": 1016.88,
+      "position_value": 47843.0,
+      "total": 48859.88
+    },
+    {
+      "date": "2025-08-13",
+      "capital": 10985.0,
+      "position_value": 38717.0,
+      "total": 49702.0
+    },
+    {
+      "date": "2025-08-14",
+      "capital": 1502.87,
+      "position_value": 48866.0,
+      "total": 50368.87
+    },
+    {
+      "date": "2025-08-15",
+      "capital": 13292.89,
+      "position_value": 36975.0,
+      "total": 50267.89
+    },
+    {
+      "date": "2025-08-18",
+      "capital": 24140.13,
+      "position_value": 26908.0,
+      "total": 51048.13
+    },
+    {
+      "date": "2025-08-19",
+      "capital": 24140.13,
+      "position_value": 26831.0,
+      "total": 50971.13
+    },
+    {
+      "date": "2025-08-20",
+      "capital": 12150.92,
+      "position_value": 39681.0,
+      "total": 51831.92
+    },
+    {
+      "date": "2025-08-21",
+      "capital": 12150.92,
+      "position_value": 39278.0,
+      "total": 51428.92
+    },
+    {
+      "date": "2025-08-22",
+      "capital": 35530.77,
+      "position_value": 17116.0,
+      "total": 52646.77
+    },
+    {
+      "date": "2025-08-25",
+      "capital": 33789.76,
+      "position_value": 18961.0,
+      "total": 52750.76
+    },
+    {
+      "date": "2025-08-26",
+      "capital": 45224.94,
+      "position_value": 7798.0,
+      "total": 53022.94
+    },
+    {
+      "date": "2025-08-27",
+      "capital": 45224.94,
+      "position_value": 7720.0,
+      "total": 52944.94
+    },
+    {
+      "date": "2025-08-28",
+      "capital": 45224.94,
+      "position_value": 8036.0,
+      "total": 53260.94
+    },
+    {
+      "date": "2025-08-29",
+      "capital": 45224.94,
+      "position_value": 7980.0,
+      "total": 53204.94
+    },
+    {
+      "date": "2025-09-01",
+      "capital": 53446.75,
+      "position_value": 0,
+      "total": 53446.75
+    },
+    {
+      "date": "2025-09-02",
+      "capital": 43051.27,
+      "position_value": 10332.0,
+      "total": 53383.27
+    },
+    {
+      "date": "2025-09-03",
+      "capital": 54034.34,
+      "position_value": 0,
+      "total": 54034.34
+    },
+    {
+      "date": "2025-09-04",
+      "capital": 54034.34,
+      "position_value": 0,
+      "total": 54034.34
+    },
+    {
+      "date": "2025-09-05",
+      "capital": 46137.52,
+      "position_value": 7892.0,
+      "total": 54029.52
+    },
+    {
+      "date": "2025-09-08",
+      "capital": 36680.36,
+      "position_value": 17144.0,
+      "total": 53824.36
+    },
+    {
+      "date": "2025-09-09",
+      "capital": 23170.11,
+      "position_value": 30318.0,
+      "total": 53488.11
+    },
+    {
+      "date": "2025-09-10",
+      "capital": 21983.01,
+      "position_value": 31498.0,
+      "total": 53481.01
+    },
+    {
+      "date": "2025-09-11",
+      "capital": 11880.79,
+      "position_value": 42026.0,
+      "total": 53906.79
+    },
+    {
+      "date": "2025-09-12",
+      "capital": 360.65,
+      "position_value": 53514.0,
+      "total": 53874.65
+    },
+    {
+      "date": "2025-09-15",
+      "capital": 11756.4,
+      "position_value": 42444.0,
+      "total": 54200.4
+    },
+    {
+      "date": "2025-09-16",
+      "capital": 11756.4,
+      "position_value": 42974.0,
+      "total": 54730.4
+    },
+    {
+      "date": "2025-09-17",
+      "capital": 190.09,
+      "position_value": 54824.0,
+      "total": 55014.09
+    },
+    {
+      "date": "2025-09-18",
+      "capital": 21051.9,
+      "position_value": 33096.0,
+      "total": 54147.9
+    },
+    {
+      "date": "2025-09-19",
+      "capital": 10895.7,
+      "position_value": 42851.0,
+      "total": 53746.7
+    },
+    {
+      "date": "2025-09-22",
+      "capital": 20613.57,
+      "position_value": 33309.0,
+      "total": 53922.57
+    },
+    {
+      "date": "2025-09-23",
+      "capital": 35214.57,
+      "position_value": 17276.0,
+      "total": 52490.57
+    },
+    {
+      "date": "2025-09-24",
+      "capital": 45606.44,
+      "position_value": 6914.0,
+      "total": 52520.44
+    },
+    {
+      "date": "2025-09-25",
+      "capital": 52614.84,
+      "position_value": 0,
+      "total": 52614.84
+    },
+    {
+      "date": "2025-09-26",
+      "capital": 52614.84,
+      "position_value": 0,
+      "total": 52614.84
+    },
+    {
+      "date": "2025-09-29",
+      "capital": 25521.81,
+      "position_value": 27167.0,
+      "total": 52688.81
+    },
+    {
+      "date": "2025-09-30",
+      "capital": 4462.31,
+      "position_value": 48303.0,
+      "total": 52765.31
+    },
+    {
+      "date": "2025-10-09",
+      "capital": 34737.33,
+      "position_value": 19955.0,
+      "total": 54692.33
+    },
+    {
+      "date": "2025-10-10",
+      "capital": 23286.19,
+      "position_value": 31189.0,
+      "total": 54475.19
+    },
+    {
+      "date": "2025-10-13",
+      "capital": 44858.98,
+      "position_value": 8760.0,
+      "total": 53618.98
+    },
+    {
+      "date": "2025-10-14",
+      "capital": 44858.98,
+      "position_value": 8709.0,
+      "total": 53567.98
+    },
+    {
+      "date": "2025-10-15",
+      "capital": 44858.98,
+      "position_value": 8907.0,
+      "total": 53765.98
+    },
+    {
+      "date": "2025-10-16",
+      "capital": 25577.28,
+      "position_value": 28234.0,
+      "total": 53811.28
+    },
+    {
+      "date": "2025-10-17",
+      "capital": 43776.0,
+      "position_value": 8664.0,
+      "total": 52440.0
+    },
+    {
+      "date": "2025-10-20",
+      "capital": 53005.97,
+      "position_value": 0,
+      "total": 53005.97
+    },
+    {
+      "date": "2025-10-21",
+      "capital": 16792.13,
+      "position_value": 36152.0,
+      "total": 52944.13
+    },
+    {
+      "date": "2025-10-22",
+      "capital": 19152.79,
+      "position_value": 33721.0,
+      "total": 52873.79
+    },
+    {
+      "date": "2025-10-23",
+      "capital": 14478.9,
+      "position_value": 37914.0,
+      "total": 52392.9
+    },
+    {
+      "date": "2025-10-24",
+      "capital": 33816.13,
+      "position_value": 19092.0,
+      "total": 52908.13
+    },
+    {
+      "date": "2025-10-27",
+      "capital": 994.51,
+      "position_value": 52631.0,
+      "total": 53625.51
+    },
+    {
+      "date": "2025-10-28",
+      "capital": 25519.28,
+      "position_value": 26720.0,
+      "total": 52239.28
+    },
+    {
+      "date": "2025-10-29",
+      "capital": 6489.34,
+      "position_value": 46142.0,
+      "total": 52631.34
+    },
+    {
+      "date": "2025-10-30",
+      "capital": 14566.41,
+      "position_value": 37207.0,
+      "total": 51773.41
+    },
+    {
+      "date": "2025-10-31",
+      "capital": 33118.62,
+      "position_value": 17964.0,
+      "total": 51082.62
+    },
+    {
+      "date": "2025-11-03",
+      "capital": 42081.0,
+      "position_value": 8766.0,
+      "total": 50847.0
+    },
+    {
+      "date": "2025-11-04",
+      "capital": 33719.03,
+      "position_value": 17326.0,
+      "total": 51045.03
+    },
+    {
+      "date": "2025-11-05",
+      "capital": 42412.62,
+      "position_value": 8560.0,
+      "total": 50972.62
+    },
+    {
+      "date": "2025-11-06",
+      "capital": 34810.65,
+      "position_value": 16090.0,
+      "total": 50900.65
+    },
+    {
+      "date": "2025-11-07",
+      "capital": 42083.32,
+      "position_value": 8502.0,
+      "total": 50585.32
+    },
+    {
+      "date": "2025-11-10",
+      "capital": 14149.05,
+      "position_value": 36746.0,
+      "total": 50895.05
+    },
+    {
+      "date": "2025-11-11",
+      "capital": 12907.54,
+      "position_value": 37044.0,
+      "total": 49951.54
+    },
+    {
+      "date": "2025-11-12",
+      "capital": 23323.25,
+      "position_value": 26199.0,
+      "total": 49522.25
+    },
+    {
+      "date": "2025-11-13",
+      "capital": 12474.41,
+      "position_value": 37464.0,
+      "total": 49938.41
+    },
+    {
+      "date": "2025-11-14",
+      "capital": 22944.2,
+      "position_value": 25656.0,
+      "total": 48600.2
+    },
+    {
+      "date": "2025-11-17",
+      "capital": 33250.71,
+      "position_value": 15791.0,
+      "total": 49041.71
+    },
+    {
+      "date": "2025-11-18",
+      "capital": 33250.71,
+      "position_value": 15611.0,
+      "total": 48861.71
+    },
+    {
+      "date": "2025-11-19",
+      "capital": 42815.18,
+      "position_value": 6037.0,
+      "total": 48852.18
+    },
+    {
+      "date": "2025-11-20",
+      "capital": 18509.53,
+      "position_value": 30316.0,
+      "total": 48825.53
+    },
+    {
+      "date": "2025-11-21",
+      "capital": 39260.55,
+      "position_value": 8380.0,
+      "total": 47640.55
+    },
+    {
+      "date": "2025-11-24",
+      "capital": 47275.37,
+      "position_value": 0,
+      "total": 47275.37
+    },
+    {
+      "date": "2025-11-25",
+      "capital": 14560.1,
+      "position_value": 32796.0,
+      "total": 47356.1
+    },
+    {
+      "date": "2025-11-26",
+      "capital": 1751.01,
+      "position_value": 45964.0,
+      "total": 47715.01
+    },
+    {
+      "date": "2025-11-27",
+      "capital": 765.81,
+      "position_value": 46752.0,
+      "total": 47517.81
+    },
+    {
+      "date": "2025-11-28",
+      "capital": 940.06,
+      "position_value": 46513.0,
+      "total": 47453.06
+    },
+    {
+      "date": "2025-12-01",
+      "capital": 589.01,
+      "position_value": 47709.0,
+      "total": 48298.01
+    },
+    {
+      "date": "2025-12-02",
+      "capital": 589.01,
+      "position_value": 47152.0,
+      "total": 47741.01
+    },
+    {
+      "date": "2025-12-03",
+      "capital": 589.01,
+      "position_value": 47123.0,
+      "total": 47712.01
+    },
+    {
+      "date": "2025-12-04",
+      "capital": 3517.66,
+      "position_value": 44818.0,
+      "total": 48335.66
+    },
+    {
+      "date": "2025-12-05",
+      "capital": 3517.66,
+      "position_value": 44996.0,
+      "total": 48513.66
+    },
+    {
+      "date": "2025-12-08",
+      "capital": 61.84,
+      "position_value": 49457.0,
+      "total": 49518.84
+    },
+    {
+      "date": "2025-12-09",
+      "capital": 18813.2,
+      "position_value": 30992.0,
+      "total": 49805.2
+    },
+    {
+      "date": "2025-12-10",
+      "capital": 44041.76,
+      "position_value": 5953.0,
+      "total": 49994.76
+    },
+    {
+      "date": "2025-12-11",
+      "capital": 25510.15,
+      "position_value": 24370.0,
+      "total": 49880.15
+    },
+    {
+      "date": "2025-12-12",
+      "capital": 27317.57,
+      "position_value": 22668.0,
+      "total": 49985.57
+    },
+    {
+      "date": "2025-12-15",
+      "capital": 31985.65,
+      "position_value": 18173.0,
+      "total": 50158.65
+    },
+    {
+      "date": "2025-12-16",
+      "capital": 40954.26,
+      "position_value": 9425.0,
+      "total": 50379.26
+    },
+    {
+      "date": "2025-12-17",
+      "capital": 37065.47,
+      "position_value": 13350.0,
+      "total": 50415.47
+    },
+    {
+      "date": "2025-12-18",
+      "capital": 37462.61,
+      "position_value": 12344.0,
+      "total": 49806.61
+    },
+    {
+      "date": "2025-12-19",
+      "capital": 28065.54,
+      "position_value": 22078.0,
+      "total": 50143.54
+    },
+    {
+      "date": "2025-12-22",
+      "capital": 27398.57,
+      "position_value": 23385.0,
+      "total": 50783.57
+    },
+    {
+      "date": "2025-12-23",
+      "capital": 14883.02,
+      "position_value": 35663.0,
+      "total": 50546.02
+    },
+    {
+      "date": "2025-12-24",
+      "capital": 3355.77,
+      "position_value": 47726.0,
+      "total": 51081.77
+    },
+    {
+      "date": "2025-12-25",
+      "capital": 16574.82,
+      "position_value": 35310.0,
+      "total": 51884.82
+    },
+    {
+      "date": "2025-12-26",
+      "capital": 26502.53,
+      "position_value": 25560.0,
+      "total": 52062.53
+    },
+    {
+      "date": "2025-12-29",
+      "capital": 18475.56,
+      "position_value": 33838.0,
+      "total": 52313.56
+    },
+    {
+      "date": "2025-12-30",
+      "capital": 28485.08,
+      "position_value": 24027.0,
+      "total": 52512.08
+    },
+    {
+      "date": "2025-12-31",
+      "capital": 40866.6,
+      "position_value": 11352.0,
+      "total": 52218.6
+    },
+    {
+      "date": "2026-01-05",
+      "capital": 40866.6,
+      "position_value": 11475.0,
+      "total": 52341.6
+    },
+    {
+      "date": "2026-01-06",
+      "capital": 29911.78,
+      "position_value": 22577.0,
+      "total": 52488.78
+    },
+    {
+      "date": "2026-01-07",
+      "capital": 39890.43,
+      "position_value": 12070.0,
+      "total": 51960.43
+    },
+    {
+      "date": "2026-01-08",
+      "capital": 45551.33,
+      "position_value": 6133.0,
+      "total": 51684.33
+    },
+    {
+      "date": "2026-01-09",
+      "capital": 51631.12,
+      "position_value": 0,
+      "total": 51631.12
+    },
+    {
+      "date": "2026-01-12",
+      "capital": 51631.12,
+      "position_value": 0,
+      "total": 51631.12
+    },
+    {
+      "date": "2026-01-13",
+      "capital": 51626.12,
+      "position_value": 0.0,
+      "total": 51626.12
+    },
+    {
+      "date": "2026-01-14",
+      "capital": 43874.52,
+      "position_value": 7700.0,
+      "total": 51574.52
+    },
+    {
+      "date": "2026-01-15",
+      "capital": 26614.73,
+      "position_value": 25203.0,
+      "total": 51817.73
+    },
+    {
+      "date": "2026-01-16",
+      "capital": 14336.39,
+      "position_value": 37816.0,
+      "total": 52152.39
+    },
+    {
+      "date": "2026-01-19",
+      "capital": 23583.37,
+      "position_value": 27876.0,
+      "total": 51459.37
+    },
+    {
+      "date": "2026-01-20",
+      "capital": 44516.17,
+      "position_value": 5967.0,
+      "total": 50483.17
+    },
+    {
+      "date": "2026-01-21",
+      "capital": 44516.17,
+      "position_value": 6156.0,
+      "total": 50672.17
+    },
+    {
+      "date": "2026-01-22",
+      "capital": 44516.17,
+      "position_value": 6275.0,
+      "total": 50791.17
+    },
+    {
+      "date": "2026-01-23",
+      "capital": 44516.17,
+      "position_value": 6011.0,
+      "total": 50527.17
+    },
+    {
+      "date": "2026-01-26",
+      "capital": 35794.68,
+      "position_value": 14552.0,
+      "total": 50346.68
+    },
+    {
+      "date": "2026-01-27",
+      "capital": 35794.68,
+      "position_value": 14364.0,
+      "total": 50158.68
+    },
+    {
+      "date": "2026-01-28",
+      "capital": 45798.62,
+      "position_value": 5289.0,
+      "total": 51087.62
+    },
+    {
+      "date": "2026-01-29",
+      "capital": 44478.31,
+      "position_value": 6800.0,
+      "total": 51278.31
+    },
+    {
+      "date": "2026-01-30",
+      "capital": 44478.31,
+      "position_value": 6675.0,
+      "total": 51153.31
+    },
+    {
+      "date": "2026-02-02",
+      "capital": 44478.31,
+      "position_value": 6602.0,
+      "total": 51080.31
+    },
+    {
+      "date": "2026-02-03",
+      "capital": 23940.54,
+      "position_value": 27314.0,
+      "total": 51254.54
+    },
+    {
+      "date": "2026-02-04",
+      "capital": 13054.87,
+      "position_value": 37639.0,
+      "total": 50693.87
+    },
+    {
+      "date": "2026-02-05",
+      "capital": 42706.07,
+      "position_value": 6735.0,
+      "total": 49441.07
+    },
+    {
+      "date": "2026-02-06",
+      "capital": 34368.59,
+      "position_value": 14940.0,
+      "total": 49308.59
+    },
+    {
+      "date": "2026-02-09",
+      "capital": 41219.35,
+      "position_value": 8568.0,
+      "total": 49787.35
+    },
+    {
+      "date": "2026-02-10",
+      "capital": 13035.68,
+      "position_value": 36945.0,
+      "total": 49980.68
+    },
+    {
+      "date": "2026-02-11",
+      "capital": 24405.23,
+      "position_value": 26187.0,
+      "total": 50592.23
+    },
+    {
+      "date": "2026-02-12",
+      "capital": 16619.58,
+      "position_value": 33623.0,
+      "total": 50242.58
+    },
+    {
+      "date": "2026-02-13",
+      "capital": 18171.05,
+      "position_value": 31525.0,
+      "total": 49696.05
+    },
+    {
+      "date": "2026-02-24",
+      "capital": 899.67,
+      "position_value": 49167.0,
+      "total": 50066.67
+    },
+    {
+      "date": "2026-02-25",
+      "capital": 1004.71,
+      "position_value": 49591.0,
+      "total": 50595.71
+    },
+    {
+      "date": "2026-02-26",
+      "capital": 9229.11,
+      "position_value": 41791.0,
+      "total": 51020.11
+    },
+    {
+      "date": "2026-02-27",
+      "capital": 32993.42,
+      "position_value": 18230.0,
+      "total": 51223.42
+    },
+    {
+      "date": "2026-03-02",
+      "capital": 43753.21,
+      "position_value": 8154.0,
+      "total": 51907.21
+    },
+    {
+      "date": "2026-03-03",
+      "capital": 43753.21,
+      "position_value": 7772.0,
+      "total": 51525.21
+    },
+    {
+      "date": "2026-03-04",
+      "capital": 51338.82,
+      "position_value": 0,
+      "total": 51338.82
+    },
+    {
+      "date": "2026-03-05",
+      "capital": 36965.31,
+      "position_value": 14993.0,
+      "total": 51958.31
+    },
+    {
+      "date": "2026-03-06",
+      "capital": 12191.28,
+      "position_value": 39460.0,
+      "total": 51651.28
+    },
+    {
+      "date": "2026-03-09",
+      "capital": 28863.9,
+      "position_value": 22038.0,
+      "total": 50901.9
+    },
+    {
+      "date": "2026-03-10",
+      "capital": 13511.93,
+      "position_value": 37226.0,
+      "total": 50737.93
+    },
+    {
+      "date": "2026-03-11",
+      "capital": 13616.97,
+      "position_value": 37587.0,
+      "total": 51203.97
+    },
+    {
+      "date": "2026-03-12",
+      "capital": 13616.97,
+      "position_value": 37574.0,
+      "total": 51190.97
+    },
+    {
+      "date": "2026-03-13",
+      "capital": 10705.04,
+      "position_value": 39820.0,
+      "total": 50525.04
+    },
+    {
+      "date": "2026-03-16",
+      "capital": 41534.54,
+      "position_value": 8395.0,
+      "total": 49929.54
+    },
+    {
+      "date": "2026-03-17",
+      "capital": 32270.31,
+      "position_value": 17739.0,
+      "total": 50009.31
+    },
+    {
+      "date": "2026-03-18",
+      "capital": 32270.31,
+      "position_value": 17659.0,
+      "total": 49929.31
+    },
+    {
+      "date": "2026-03-19",
+      "capital": 31591.33,
+      "position_value": 17914.0,
+      "total": 49505.33
+    },
+    {
+      "date": "2026-03-20",
+      "capital": 31591.33,
+      "position_value": 17893.0,
+      "total": 49484.33
+    },
+    {
+      "date": "2026-03-23",
+      "capital": 49906.78,
+      "position_value": 0,
+      "total": 49906.78
+    },
+    {
+      "date": "2026-03-24",
+      "capital": 12668.04,
+      "position_value": 37741.0,
+      "total": 50409.04
+    },
+    {
+      "date": "2026-03-25",
+      "capital": 11780.07,
+      "position_value": 38815.0,
+      "total": 50595.07
+    },
+    {
+      "date": "2026-03-26",
+      "capital": 30911.89,
+      "position_value": 18658.0,
+      "total": 49569.89
+    },
+    {
+      "date": "2026-03-27",
+      "capital": 14133.66,
+      "position_value": 35538.0,
+      "total": 49671.66
+    },
+    {
+      "date": "2026-03-30",
+      "capital": 18975.13,
+      "position_value": 30647.0,
+      "total": 49622.13
+    },
+    {
+      "date": "2026-03-31",
+      "capital": 18351.12,
+      "position_value": 31152.0,
+      "total": 49503.12
+    },
+    {
+      "date": "2026-04-01",
+      "capital": 634.87,
+      "position_value": 50462.0,
+      "total": 51096.87
+    },
+    {
+      "date": "2026-04-02",
+      "capital": 25312.12,
+      "position_value": 24568.0,
+      "total": 49880.12
+    },
+    {
+      "date": "2026-04-03",
+      "capital": 25312.12,
+      "position_value": 24452.0,
+      "total": 49764.12
+    },
+    {
+      "date": "2026-04-07",
+      "capital": 25307.12,
+      "position_value": 24596.0,
+      "total": 49903.12
+    },
+    {
+      "date": "2026-04-08",
+      "capital": 23787.35,
+      "position_value": 27655.0,
+      "total": 51442.35
+    },
+    {
+      "date": "2026-04-09",
+      "capital": 14225.22,
+      "position_value": 38480.0,
+      "total": 52705.22
+    },
+    {
+      "date": "2026-04-10",
+      "capital": 14225.22,
+      "position_value": 37304.0,
+      "total": 51529.22
+    },
+    {
+      "date": "2026-04-13",
+      "capital": 29947.52,
+      "position_value": 21318.0,
+      "total": 51265.52
+    },
+    {
+      "date": "2026-04-14",
+      "capital": 29947.52,
+      "position_value": 21820.0,
+      "total": 51767.52
+    },
+    {
+      "date": "2026-04-15",
+      "capital": 2056.76,
+      "position_value": 48528.0,
+      "total": 50584.76
+    },
+    {
+      "date": "2026-04-16",
+      "capital": 2056.76,
+      "position_value": 49260.0,
+      "total": 51316.76
+    },
+    {
+      "date": "2026-04-17",
+      "capital": 2056.76,
+      "position_value": 48524.0,
+      "total": 50580.76
+    },
+    {
+      "date": "2026-04-20",
+      "capital": 30188.81,
+      "position_value": 22199.0,
+      "total": 52387.81
+    },
+    {
+      "date": "2026-04-21",
+      "capital": 18574.42,
+      "position_value": 34228.0,
+      "total": 52802.42
+    },
+    {
+      "date": "2026-04-22",
+      "capital": 26768.4,
+      "position_value": 26307.0,
+      "total": 53075.4
+    },
+    {
+      "date": "2026-04-23",
+      "capital": 39039.89,
+      "position_value": 13760.0,
+      "total": 52799.89
+    },
+    {
+      "date": "2026-04-24",
+      "capital": 43150.24,
+      "position_value": 9276.0,
+      "total": 52426.24
+    },
+    {
+      "date": "2026-04-27",
+      "capital": 43150.24,
+      "position_value": 9424.0,
+      "total": 52574.24
+    },
+    {
+      "date": "2026-04-28",
+      "capital": 43145.24,
+      "position_value": 9090.0,
+      "total": 52235.24
+    },
+    {
+      "date": "2026-04-29",
+      "capital": 40127.54,
+      "position_value": 11886.0,
+      "total": 52013.54
+    },
+    {
+      "date": "2026-04-30",
+      "capital": 28123.58,
+      "position_value": 23827.0,
+      "total": 51950.58
+    },
+    {
+      "date": "2026-05-06",
+      "capital": 40791.58,
+      "position_value": 11872.0,
+      "total": 52663.58
+    },
+    {
+      "date": "2026-05-07",
+      "capital": 33922.3,
+      "position_value": 18900.0,
+      "total": 52822.3
+    },
+    {
+      "date": "2026-05-08",
+      "capital": 33922.3,
+      "position_value": 18972.0,
+      "total": 52894.3
+    },
+    {
+      "date": "2026-05-11",
+      "capital": 33922.3,
+      "position_value": 18874.0,
+      "total": 52796.3
+    },
+    {
+      "date": "2026-05-12",
+      "capital": 22789.98,
+      "position_value": 30018.0,
+      "total": 52807.98
+    },
+    {
+      "date": "2026-05-13",
+      "capital": 25650.43,
+      "position_value": 26843.0,
+      "total": 52493.43
+    },
+    {
+      "date": "2026-05-14",
+      "capital": 33988.66,
+      "position_value": 17568.0,
+      "total": 51556.66
+    },
+    {
+      "date": "2026-05-15",
+      "capital": 40559.92,
+      "position_value": 10798.0,
+      "total": 51357.92
+    },
+    {
+      "date": "2026-05-18",
+      "capital": 40087.59,
+      "position_value": 11125.0,
+      "total": 51212.59
+    },
+    {
+      "date": "2026-05-19",
+      "capital": 15038.16,
+      "position_value": 36451.0,
+      "total": 51489.16
+    },
+    {
+      "date": "2026-05-20",
+      "capital": 45172.26,
+      "position_value": 7578.0,
+      "total": 52750.26
+    },
+    {
+      "date": "2026-05-21",
+      "capital": 52398.34,
+      "position_value": 0,
+      "total": 52398.34
+    },
+    {
+      "date": "2026-05-22",
+      "capital": 52398.34,
+      "position_value": 0,
+      "total": 52398.34
+    },
+    {
+      "date": "2026-05-25",
+      "capital": 42974.24,
+      "position_value": 9405.0,
+      "total": 52379.24
+    },
+    {
+      "date": "2026-05-26",
+      "capital": 37530.09,
+      "position_value": 15314.0,
+      "total": 52844.09
+    },
+    {
+      "date": "2026-05-27",
+      "capital": 42732.05,
+      "position_value": 9486.0,
+      "total": 52218.05
+    },
+    {
+      "date": "2026-05-28",
+      "capital": 44428.13,
+      "position_value": 7280.0,
+      "total": 51708.13
+    },
+    {
+      "date": "2026-05-29",
+      "capital": 35709.42,
+      "position_value": 16447.0,
+      "total": 52156.42
+    },
+    {
+      "date": "2026-06-01",
+      "capital": 44063.34,
+      "position_value": 7375.0,
+      "total": 51438.34
+    },
+    {
+      "date": "2026-06-02",
+      "capital": 43240.15,
+      "position_value": 8578.0,
+      "total": 51818.15
+    },
+    {
+      "date": "2026-06-03",
+      "capital": 52346.38,
+      "position_value": 0,
+      "total": 52346.38
+    },
+    {
+      "date": "2026-06-04",
+      "capital": 52346.38,
+      "position_value": 0,
+      "total": 52346.38
+    },
+    {
+      "date": "2026-06-05",
+      "capital": 27165.69,
+      "position_value": 25154.0,
+      "total": 52319.69
+    },
+    {
+      "date": "2026-06-08",
+      "capital": 51257.11,
+      "position_value": 0,
+      "total": 51257.11
+    },
+    {
+      "date": "2026-06-09",
+      "capital": 51257.11,
+      "position_value": 0,
+      "total": 51257.11
+    },
+    {
+      "date": "2026-06-10",
+      "capital": 51257.11,
+      "position_value": 0,
+      "total": 51257.11
+    }
+  ],
+  "stats_detail": {
+    "max_drawdown": 14.07,
+    "avg_trade_per_day": 1.1,
+    "largest_win": 6.0,
+    "largest_loss": -4.0
+  }
+}
