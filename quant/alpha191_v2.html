@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>JH Alpha191 智能选股系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f2f2f7;--card:#fff;--border:#e5e5ea;--text:#1c1c1e;--sec:#8e8e93;--green:#34c759;--red:#ff3b30;--blue:#007aff;--orange:#ff9500}
+body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+.header{background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);position:sticky;top:0;z-index:100;padding:12px 16px 0}
+.header h1{font-size:18px;font-weight:700}
+.header .sub{font-size:11px;color:var(--sec);margin-top:2px}
+.tabs{display:flex;margin-top:10px}
+.tab{flex:1;text-align:center;padding:8px 0;font-size:13px;font-weight:500;color:var(--sec);border-bottom:2px solid transparent;cursor:pointer}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.content{padding:12px 14px}
+.hidden{display:none}
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.glass-card{background:rgba(255,255,255,0.72);border:0.5px solid rgba(255,255,255,0.5);border-radius:14px;padding:14px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between}
+.stock-card{position:relative}
+.stock-name{font-size:16px;font-weight:600}
+.stock-code{font-size:12px;color:var(--sec)}
+.stock-score{font-size:28px;font-weight:700;color:var(--blue)}
+.stock-price{font-size:18px;font-weight:600}
+.stock-change{font-size:13px;font-weight:500}
+.stock-change.up{color:var(--green)}
+.stock-change.down{color:var(--red)}
+.badge{position:absolute;top:12px;right:12px;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(0,122,255,0.08);color:var(--blue)}
+.signal{display:inline-block;padding:4px 10px;border-radius:8px;font-size:12px;background:rgba(0,122,255,0.06);color:var(--blue);margin:2px}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;background:rgba(255,149,0,0.1);color:var(--orange);margin:2px}
+.factor-bar{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px}
+.factor-bar .fname{width:80px;text-align:right;color:var(--sec);flex-shrink:0}
+.factor-bar .fbar{flex:1;height:4px;background:rgba(0,0,0,0.04);border-radius:2px;overflow:hidden}
+.factor-bar .fbar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#007aff,#5ac8fa)}
+.factor-bar .fval{width:30px;font-size:11px;color:var(--sec);text-align:right}
+.factor-detail{margin-top:8px;padding:10px;background:rgba(0,0,0,0.02);border-radius:8px;font-size:12px}
+.factor-detail .fd-row{display:flex;justify-content:space-between;padding:3px 0}
+.factor-detail .fd-label{color:var(--sec)}
+.factor-detail .fd-val{font-weight:500}
+.day-header{display:flex;align-items:center;padding:10px 4px;cursor:pointer;border-bottom:0.5px solid rgba(0,0,0,0.04)}
+.day-header:active{background:rgba(0,0,0,0.02)}
+.arrow{font-size:10px;color:var(--sec);transition:transform .2s;margin-left:6px}
+.arrow.open{transform:rotate(90deg)}
+.day-picks{display:none;overflow:hidden}
+.day-picks.show{display:block}
+.pick-card{padding:10px 4px;margin:6px 0;border:0.5px solid var(--border);border-radius:10px;background:rgba(0,0,0,0.01)}
+.pick-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.pick-name{font-size:14px;font-weight:600}
+.pick-code{font-size:11px;color:var(--sec);margin-left:6px}
+.pick-score{font-size:13px;font-weight:600;color:var(--blue)}
+.pick-price{font-size:11px;color:var(--sec);margin-bottom:6px}
+.chart-container{margin:8px 0;position:relative}
+.chart-canvas{width:100%;height:120px;display:block}
+.chart-legend{display:flex;gap:12px;justify-content:center;font-size:10px;color:var(--sec);margin-top:4px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.returns-row{display:flex;gap:8px;margin:6px 0}
+.return-tag{font-size:11px;padding:2px 8px;border-radius:6px}
+.return-tag.up{background:rgba(52,199,89,0.1);color:var(--green)}
+.return-tag.down{background:rgba(255,59,48,0.1);color:var(--red)}
+.factor-mini{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.factor-tag{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(0,122,255,0.06);color:var(--blue)}
+.ai-box{margin-top:10px;padding:10px 12px;background:rgba(0,122,255,0.04);border-radius:10px}
+.section-title{font-size:15px;font-weight:600;margin:16px 0 10px}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat-item{text-align:center;padding:10px 6px;background:var(--card);border-radius:10px;border:0.5px solid var(--border)}
+.stat-val{font-size:20px;font-weight:700}
+.stat-label{font-size:11px;color:var(--sec);margin-top:2px}
+.weight-bar{display:flex;align-items:center;gap:6px;margin:4px 0}
+.weight-name{width:80px;text-align:right;font-size:12px;color:var(--sec);flex-shrink:0}
+.weight-fill{height:8px;border-radius:4px;background:linear-gradient(90deg,#007aff,#5ac8fa)}
+.weight-val{font-size:11px;color:var(--sec);width:30px}
+.daily-row{display:flex;align-items:center;padding:10px 0;border-bottom:0.5px solid rgba(0,0,0,0.04);font-size:12px;gap:8px}
+.daily-date{width:70px;font-weight:500;flex-shrink:0}
+.daily-cell{text-align:center;flex:1}
+.daily-cell .val{font-weight:600}
+.picks-table{width:100%;font-size:12px;border-collapse:collapse}
+.picks-table th{text-align:left;padding:6px 4px;color:var(--sec);font-weight:500;border-bottom:0.5px solid var(--border);font-size:11px}
+.picks-table td{padding:7px 4px;border-bottom:0.5px solid rgba(0,0,0,0.03)}
+.loading{text-align:center;padding:40px;color:var(--sec)}
+.spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>JH Alpha191 智能选股系统</h1>
+  <div class="sub">Alpha191+JH混合因子 · <span id="headerDate">--</span></div>
+  <div class="tabs">
+    <div class="tab active" data-tab="recommend">实时推荐</div>
+    <div class="tab" data-tab="factors">因子分析</div>
+    <div class="tab" data-tab="backtest">回测报告</div>
+  </div>
+</div>
+
+<div id="tab-recommend" class="content">
+  <div id="recList"><div class="loading"><div class="spinner"></div>加载中...</div></div>
+</div>
+
+<div id="tab-factors" class="content hidden">
+  <div id="factorAnalysis"><div class="loading"><div class="spinner"></div>加载中...</div></div>
+</div>
+
+<div id="tab-backtest" class="content hidden">
+  <div id="btStats"><div class="loading"><div class="spinner"></div>加载中...</div></div>
+</div>
+
+<script>
+(function(){
+  let recData = null, btData = null;
+  
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('[id^="tab-"]').forEach(p => p.classList.add('hidden'));
+      document.getElementById('tab-' + this.dataset.tab).classList.remove('hidden');
+      if(this.dataset.tab === 'recommend'){
+        if(recData) renderRecommend();
+        else document.getElementById('recList').innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+      }
+      if(this.dataset.tab === 'factors'){
+        if(recData) renderFactors();
+        else document.getElementById('factorAnalysis').innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+      }
+      if(this.dataset.tab === 'backtest'){
+        if(btData) renderBacktest();
+        else document.getElementById('btStats').innerHTML = '<div class="loading"><div class="spinner"></div>加载中...</div>';
+      }
+    });
+  });
+  
+  // Load data
+  fetch('data/alpha191_recommendations.json?t=' + Date.now()).then(r=>r.json()).then(d=>{
+    recData = d;
+    document.getElementById('headerDate').textContent = d.date + ' ' + d.time;
+    renderRecommend();
+  }).catch(()=>{
+    document.getElementById('recList').innerHTML = '<div class="card">⚠️ 无法加载推荐数据</div>';
+  });
+  
+  fetch('data/backtest_result.json?t=' + Date.now()).then(r=>r.json()).then(d=>{
+    btData = d;
+    // 如果当前Tab是回测，立即渲染
+    const activeTab = document.querySelector('.tab.active');
+    if(activeTab && activeTab.dataset.tab === 'backtest') renderBacktest();
+  }).catch(()=>{
+    document.getElementById('btStats').innerHTML = '<div class="card">⚠️ 回测数据加载失败</div>';
+  });
+  
+  function renderRecommend(){
+    if(!recData) return;
+    const container = document.getElementById('recList');
+    const stocks = recData.top_picks || [];
+    if(!stocks.length){
+      container.innerHTML = '<div class="card">📭 今日暂无推荐</div>';
+      return;
+    }
+    
+    let html = '';
+    // Market overview
+    html += '<div class="glass-card"><div class="row">';
+    html += '<div><span style="font-size:12px;color:var(--sec)">市场涨跌</span><div style="font-size:16px;font-weight:700;color:'+(recData.market_change>=0?'var(--green)':'var(--red)')+'">'+(recData.market_change>=0?'+':'')+recData.market_change+'%</div></div>';
+    html += '<div style="text-align:center"><span style="font-size:12px;color:var(--sec)">扫描</span><div style="font-size:16px;font-weight:700">'+recData.total_scanned+'</div></div>';
+    html += '<div style="text-align:center"><span style="font-size:12px;color:var(--sec)">候选</span><div style="font-size:16px;font-weight:700;color:var(--blue)">'+recData.total_candidates+'</div></div>';
+    html += '<div style="text-align:right"><span style="font-size:12px;color:var(--sec)">耗时</span><div style="font-size:16px;font-weight:700">'+recData.elapsed_seconds+'s</div></div>';
+    html += '</div></div>';
+    
+    stocks.forEach((s, idx) => {
+      const chgClass = s.change >= 0 ? 'up' : 'down';
+      const chgSign = s.change >= 0 ? '+' : '';
+      
+      html += '<div class="card stock-card">';
+      html += '<div class="badge">#'+(idx+1)+'</div>';
+      html += '<div class="row"><div><div class="stock-name">'+s.name+'</div><div class="stock-code">'+s.code+'</div></div><div style="text-align:right"><div class="stock-score">'+s.score+'</div><div style="font-size:10px;color:var(--sec)">综合评分</div></div></div>';
+      html += '<div class="row" style="margin-top:8px"><div><div class="stock-price">¥'+s.price+'</div></div><div><span class="stock-change '+chgClass+'">'+chgSign+s.change+'%</span></div></div>';
+      
+      // Signals
+      if(s.signals && s.signals.length){
+        html += '<div style="margin-top:8px">';
+        s.signals.forEach(sig => { html += '<span class="signal">'+sig+'</span>'; });
+        html += '</div>';
+      }
+      
+      // Factors
+      if(s.factors){
+        const maxF = Math.max(...Object.values(s.factors));
+        html += '<div style="margin-top:10px">';
+        Object.entries(s.factors).forEach(([k,v])=>{
+          const pct = Math.abs(v) / maxF * 100;
+          html += '<div class="factor-bar"><div class="fname">'+k+'</div><div class="fbar"><div class="fbar-fill" style="width:'+pct+'%"></div></div><div class="fval">'+v.toFixed(1)+'</div></div>';
+        });
+        html += '</div>';
+      }
+      
+      // Indicators
+      if(s.indicators){
+        html += '<div class="factor-detail">';
+        const ind = s.indicators;
+        if(ind.ma5) html += '<div class="fd-row"><span class="fd-label">MA5</span><span class="fd-val">'+ind.ma5+'</span></div>';
+        if(ind.ma10) html += '<div class="fd-row"><span class="fd-label">MA10</span><span class="fd-val">'+ind.ma10+'</span></div>';
+        if(ind.ma20) html += '<div class="fd-row"><span class="fd-label">MA20</span><span class="fd-val">'+ind.ma20+'</span></div>';
+        if(ind.rsi14) html += '<div class="fd-row"><span class="fd-label">RSI14</span><span class="fd-val">'+ind.rsi14+'</span></div>';
+        if(ind.macd !== undefined) html += '<div class="fd-row"><span class="fd-label">MACD</span><span class="fd-val">'+ind.macd+'</span></div>';
+        if(ind.vol_ratio) html += '<div class="fd-row"><span class="fd-label">量比</span><span class="fd-val">'+ind.vol_ratio+'</span></div>';
+        html += '</div>';
+      }
+      
+      // Alpha
+      if(s.alpha){
+        html += '<div class="factor-detail" style="background:rgba(0,122,255,0.03);margin-top:6px">';
+        html += '<div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:4px">Alpha191 指标</div>';
+        Object.entries(s.alpha).slice(0,6).forEach(([k,v])=>{
+          html += '<div class="fd-row"><span class="fd-label">'+k+'</span><span class="fd-val">'+v+'</span></div>';
+        });
+        html += '</div>';
+      }
+      
+      // Concepts
+      if(s.concepts && s.concepts.length){
+        html += '<div style="margin-top:8px">';
+        s.concepts.forEach(c => { html += '<span class="tag">'+c+'</span>'; });
+        html += '</div>';
+      }
+      
+      html += '</div>';
+    });
+    
+    container.innerHTML = html;
+  }
+  
+  function renderFactors(){
+    if(!recData) return;
+    const container = document.getElementById('factorAnalysis');
+    const weights = recData.weights || {};
+    const names = recData.weight_names || {};
+    
+    if(!Object.keys(weights).length){
+      container.innerHTML = '<div class="card">无因子数据</div>';
+      return;
+    }
+    
+    const maxW = Math.max(...Object.values(weights));
+    const total = Object.values(weights).reduce((a,b)=>a+b, 0);
+    const sorted = Object.entries(weights).sort((a,b)=>b[1]-a[1]);
+    
+    let html = '<div class="glass-card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">因子权重分布</div>';
+    html += '<div style="font-size:12px;color:var(--sec);margin-bottom:10px">共'+sorted.length+'个因子，总权重'+total+'%</div>';
+    
+    sorted.forEach(([k,v],i)=>{
+      const name = names[k] || k;
+      const pct = (v / maxW * 100).toFixed(0);
+      const wpct = (v / total * 100).toFixed(1);
+      html += '<div style="display:flex;align-items:center;gap:8px;margin:6px 0">';
+      html += '<div style="width:80px;font-size:12px;font-weight:500;text-align:right">'+name+'</div>';
+      html += '<div style="flex:1"><div style="height:8px;background:rgba(0,0,0,0.04);border-radius:4px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,#007aff,#5ac8fa);border-radius:4px"></div></div></div>';
+      html += '<div style="width:56px;text-align:right;font-size:12px"><b>'+v+'%</b> <span style="color:var(--sec);font-size:10px">('+wpct+'%)</span></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    
+    container.innerHTML = html;
+  }
+  
+  function renderBacktest(){
+    if(!btData) return;
+    const container = document.getElementById('btStats');
+    
+    // Aggregate stats
+    let totalPicks = 0, totalT1 = 0, totalT3 = 0, t1Wins = 0, t3Wins = 0, t3Count = 0;
+    btData.daily_stats.forEach(day => {
+      totalPicks += day.picks_count;
+      totalT1 += (day.t1_avg_return || 0) * day.picks_count;
+      totalT3 += (day.t3_avg_return || 0) * day.picks_count;
+      day.picks.forEach(p => {
+        if((p.t1_return||0) > 0) t1Wins++;
+        if(p.t3_return !== undefined){ t3Count++; if(p.t3_return > 0) t3Wins++; }
+      });
+    });
+    
+    const avgT1 = (totalT1 / totalPicks).toFixed(2);
+    const avgT3 = (totalT3 / totalPicks).toFixed(2);
+    const t1WR = ((t1Wins / totalPicks) * 100).toFixed(1);
+    const t3WR = t3Count > 0 ? ((t3Wins / t3Count) * 100).toFixed(1) : '--';
+    
+    let html = '<div class="glass-card">';
+    html += '<div class="stats-grid" style="grid-template-columns:repeat(2,1fr)">';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--blue)">'+totalPicks+'</div><div class="stat-label">总推荐</div></div>';
+    html += '<div class="stat-item"><div class="stat-val">'+btData.daily_stats.length+'</div><div class="stat-label">交易日</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">'+(avgT1>=0?'+':'')+avgT1+'%</div><div class="stat-label">T+1均涨</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">'+(avgT3>=0?'+':'')+avgT3+'%</div><div class="stat-label">T+3均涨</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">'+t1WR+'%</div><div class="stat-label">T+1胜率</div></div>';
+    html += '<div class="stat-item"><div class="stat-val" style="color:var(--green)">'+t3WR+'%</div><div class="stat-label">T+3胜率</div></div>';
+    html += '</div></div>';
+    
+    // Daily stats with expandable picks
+    html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">📅 每日表现 <span style="font-size:11px;color:var(--sec);font-weight:400">点击展开查看详情</span></div>';
+    
+    btData.daily_stats.forEach((day, dayIdx) => {
+      const t1c = day.t1_avg_return >= 0 ? 'var(--green)' : 'var(--red)';
+      const t3c = day.t3_avg_return >= 0 ? 'var(--green)' : 'var(--red)';
+      
+      // Day header - clickable
+      html += '<div class="day-header" onclick="toggleDay('+dayIdx+')">';
+      html += '<div style="flex:1;display:flex;align-items:center;gap:8px">';
+      html += '<div style="width:70px;font-weight:500;font-size:13px">'+day.date.slice(5)+'</div>';
+      html += '<div style="text-align:center;flex:1"><div style="font-size:14px;font-weight:600">'+day.picks_count+'只</div><div style="font-size:10px;color:var(--sec)">选股</div></div>';
+      html += '<div style="text-align:center;flex:1"><div style="font-size:14px;font-weight:600;color:'+t1c+'">'+(day.t1_avg_return>=0?'+':'')+day.t1_avg_return+'%</div><div style="font-size:10px;color:var(--sec)">T+1</div></div>';
+      html += '<div style="text-align:center;flex:1"><div style="font-size:14px;font-weight:600;color:'+t3c+'">'+(day.t3_avg_return>=0?'+':'')+day.t3_avg_return+'%</div><div style="font-size:10px;color:var(--sec)">T+3</div></div>';
+      html += '</div>';
+      html += '<div class="arrow" id="arrow-'+dayIdx+'">▶</div>';
+      html += '</div>';
+      
+      // Day picks - hidden by default
+      html += '<div class="day-picks" id="picks-'+dayIdx+'">';
+      
+      day.picks.forEach((p, pickIdx) => {
+        const t1Class = (p.t1_return||0) >= 0 ? 'up' : 'down';
+        const t2Class = (p.t2_return||0) >= 0 ? 'up' : 'down';
+        const t3Class = (p.t3_return||0) >= 0 ? 'up' : 'down';
+        const t5Class = (p.t5_return||0) >= 0 ? 'up' : 'down';
+        const maxClass = (p.max_return||0) >= 0 ? 'up' : 'down';
+        const minClass = (p.min_return||0) >= 0 ? 'up' : 'down';
+        
+        html += '<div class="pick-card">';
+        // Header: name + score
+        html += '<div class="pick-row">';
+        html += '<div><span class="pick-name">'+p.name+'</span><span class="pick-code">'+p.code+'</span></div>';
+        html += '<div class="pick-score">'+p.score+'分</div>';
+        html += '</div>';
+        
+        // Entry info
+        html += '<div class="pick-price">入场价: ¥'+p.entry_price+' | 当日: '+(p.change>=0?'+':'')+p.change+'%</div>';
+        
+        // Chart - handle missing data
+        const hasData = p.t1_return !== undefined;
+        const hasT3 = p.t3_return !== undefined;
+        const hasT5 = p.t5_return !== undefined;
+        
+        if(hasData){
+          html += '<div class="chart-container">';
+          html += '<canvas id="chart-'+dayIdx+'-'+pickIdx+'" class="chart-canvas"></canvas>';
+          html += '<div class="chart-legend"><span><span class="dot" style="background:#34c759"></span>上涨</span><span><span class="dot" style="background:#ff3b30"></span>下跌</span></div>';
+          html += '</div>';
+        } else {
+          html += '<div style="padding:10px;text-align:center;color:var(--sec);font-size:12px">⏳ 走势数据待更新</div>';
+        }
+        
+        // Max/Min tags - only if data exists
+        if(p.max_return !== undefined && p.min_return !== undefined){
+          html += '<div class="returns-row">';
+          html += '<span class="return-tag '+maxClass+'">最高: +'+p.max_return+'%</span>';
+          html += '<span class="return-tag '+minClass+'">最低: '+p.min_return+'%</span>';
+          html += '</div>';
+        }
+        
+        // Factors
+        if(p.factors){
+          html += '<div class="factor-mini">';
+          Object.entries(p.factors).forEach(([k,v])=>{
+            if(v > 5) html += '<span class="factor-tag">'+k+'</span>';
+          });
+          html += '</div>';
+        }
+        
+        html += '</div>';
+      });
+      
+      html += '</div>';
+    });
+    
+    html += '</div>';
+    
+    container.innerHTML = html;
+  }
+  
+  // Toggle day picks visibility
+  window.toggleDay = function(idx){
+    const picks = document.getElementById('picks-'+idx);
+    const arrow = document.getElementById('arrow-'+idx);
+    if(picks.classList.contains('show')){
+      picks.classList.remove('show');
+      arrow.classList.remove('open');
+    } else {
+      picks.classList.add('show');
+      arrow.classList.add('open');
+      // Draw charts when expanding
+      setTimeout(() => drawAllCharts(idx), 50);
+    }
+  }
+  
+  // Draw all charts for a day
+  function drawAllCharts(dayIdx){
+    const day = btData.daily_stats[dayIdx];
+    if(!day) return;
+    day.picks.forEach((p, pickIdx) => {
+      drawReturnChart(dayIdx, pickIdx, p);
+    });
+  }
+  
+  // Draw single stock return chart
+  function drawReturnChart(dayIdx, pickIdx, pick){
+    const canvas = document.getElementById('chart-'+dayIdx+'-'+pickIdx);
+    if(!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = 120 * dpr;
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width;
+    const h = 120;
+    const padding = {top: 20, right: 15, bottom: 25, left: 45};
+    const chartW = w - padding.left - padding.right;
+    const chartH = h - padding.top - padding.bottom;
+    
+    // Data points: 入场价作为基准(0%), T+1, T+2, T+3, T+5
+    const returns = [0, pick.t1_return || 0, pick.t2_return || 0, pick.t3_return || 0, pick.t5_return || 0];
+    const labels = ['入场', 'T+1', 'T+2', 'T+3', 'T+5'];
+    
+    // Check if we have valid data
+    if(pick.t1_return === undefined) return;
+    
+    const minR = Math.min(...returns);
+    const maxR = Math.max(...returns);
+    const range = Math.max(Math.abs(minR), Math.abs(maxR), 1);
+    
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+    
+    // Background
+    ctx.fillStyle = 'rgba(0,0,0,0.02)';
+    ctx.fillRect(padding.left, padding.top, chartW, chartH);
+    
+    // Zero line
+    const zeroY = padding.top + chartH / 2;
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(padding.left, zeroY);
+    ctx.lineTo(padding.left + chartW, zeroY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Grid lines
+    ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+    ctx.lineWidth = 0.5;
+    for(let i = 0; i <= 4; i++){
+      const y = padding.top + (chartH * i / 4);
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + chartW, y);
+      ctx.stroke();
+    }
+    
+    // Y axis labels
+    ctx.fillStyle = '#8e8e93';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('+'+range.toFixed(1)+'%', padding.left - 5, padding.top + 10);
+    ctx.fillText('0%', padding.left - 5, zeroY + 3);
+    ctx.fillText('-'+range.toFixed(1)+'%', padding.left - 5, padding.top + chartH);
+    
+    // Plot area
+    const getX = (i) => padding.left + (i / (returns.length - 1)) * chartW;
+    const getY = (val) => zeroY - (val / range) * (chartH / 2);
+    
+    // Fill area under curve
+    ctx.beginPath();
+    ctx.moveTo(getX(0), getY(returns[0]));
+    for(let i = 1; i < returns.length; i++){
+      ctx.lineTo(getX(i), getY(returns[i]));
+    }
+    ctx.lineTo(getX(returns.length - 1), zeroY);
+    ctx.lineTo(getX(0), zeroY);
+    ctx.closePath();
+    
+    const gradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+    if(returns[returns.length - 1] >= 0){
+      gradient.addColorStop(0, 'rgba(52, 199, 89, 0.15)');
+      gradient.addColorStop(1, 'rgba(52, 199, 89, 0.02)');
+    } else {
+      gradient.addColorStop(0, 'rgba(255, 59, 48, 0.02)');
+      gradient.addColorStop(1, 'rgba(255, 59, 48, 0.15)');
+    }
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    
+    // Draw line
+    ctx.beginPath();
+    ctx.moveTo(getX(0), getY(returns[0]));
+    for(let i = 1; i < returns.length; i++){
+      ctx.lineTo(getX(i), getY(returns[i]));
+    }
+    ctx.strokeStyle = returns[returns.length - 1] >= 0 ? '#34c759' : '#ff3b30';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    
+    // Draw points
+    returns.forEach((val, i) => {
+      const x = getX(i);
+      const y = getY(val);
+      
+      // Point
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = val >= 0 ? '#34c759' : '#ff3b30';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Value label
+      ctx.fillStyle = val >= 0 ? '#34c759' : '#ff3b30';
+      ctx.font = 'bold 10px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      const labelY = val >= 0 ? y - 10 : y + 15;
+      ctx.fillText((val >= 0 ? '+' : '') + val.toFixed(2) + '%', x, labelY);
+    });
+    
+    // X axis labels
+    ctx.fillStyle = '#8e8e93';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    labels.forEach((label, i) => {
+      ctx.fillText(label, getX(i), h - 5);
+    });
+  }
+})();
+</script>
+</body>
+</html>
