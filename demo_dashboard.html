@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Demo 1: 数据可视化仪表盘</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;background:#0a0a1a;color:#fff;min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:40px 24px}
+.header{text-align:center;margin-bottom:48px}
+.header h1{font-size:32px;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px}
+.header p{font-size:16px;color:rgba(255,255,255,0.5)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:24px;margin-bottom:32px}
+.card{background:rgba(255,255,255,0.06);border-radius:20px;padding:24px;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(20px)}
+.card-title{font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:16px;font-weight:500}
+.chart{width:100%;height:300px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.stat-card{background:rgba(255,255,255,0.06);border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(255,255,255,0.1)}
+.stat-value{font-size:36px;font-weight:700;margin-bottom:4px}
+.stat-label{font-size:13px;color:rgba(255,255,255,0.5)}
+.stat-temp{color:#FF6B6B}
+.stat-wind{color:#4ECDC4}
+.stat-humidity{color:#45B7D1}
+.stat-uv{color:#F7DC6F}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🌤️ 天气数据仪表盘</h1>
+    <p>ECharts数据可视化 · 实时更新</p>
+  </div>
+  
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value stat-temp">28°</div>
+      <div class="stat-label">当前温度</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value stat-wind">12</div>
+      <div class="stat-label">风速 km/h</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value stat-humidity">65%</div>
+      <div class="stat-label">湿度</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value stat-uv">6</div>
+      <div class="stat-label">UV指数</div>
+    </div>
+  </div>
+  
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">📈 24小时温度曲线</div>
+      <div class="chart" id="temp-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🧭 风向玫瑰图</div>
+      <div class="chart" id="wind-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌧️ 7天降水量</div>
+      <div class="chart" id="rain-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌡️ 温度分布</div>
+      <div class="chart" id="distribution-chart"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+// 温度曲线
+const tempChart = echarts.init(document.getElementById('temp-chart'));
+const hours = Array.from({length:24},(_,i)=>`${i}:00`);
+const temps = [22,21,20,19,19,20,22,24,26,28,30,31,32,32,31,30,29,28,27,26,25,24,23,22];
+tempChart.setOption({
+  backgroundColor:'transparent',
+  grid:{top:20,right:20,bottom:30,left:50},
+  xAxis:{type:'category',data:hours,axisLine:{lineStyle:{color:'rgba(255,255,255,0.2)'}},axisLabel:{color:'rgba(255,255,255,0.5)',fontSize:11}},
+  yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(255,255,255,0.05)'}},axisLabel:{color:'rgba(255,255,255,0.5)',formatter:'{value}°'}},
+  series:[{
+    type:'line',
+    data:temps,
+    smooth:true,
+    symbol:'circle',
+    symbolSize:6,
+    lineStyle:{color:'#FF6B6B',width:3},
+    itemStyle:{color:'#FF6B6B'},
+    areaStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'rgba(255,107,107,0.3)'},{offset:1,color:'rgba(255,107,107,0)'}]}}
+  }],
+  tooltip:{trigger:'axis',backgroundColor:'rgba(0,0,0,0.8)',borderColor:'transparent',textStyle:{color:'#fff'}}
+});
+
+// 风向玫瑰图
+const windChart = echarts.init(document.getElementById('wind-chart'));
+windChart.setOption({
+  backgroundColor:'transparent',
+  polar:{},
+  angleAxis:{type:'category',data:['N','NE','E','SE','S','SW','W','NW'],axisLabel:{color:'rgba(255,255,255,0.5)'}},
+  radiusAxis:{axisLabel:{color:'rgba(255,255,255,0.5)'},splitLine:{lineStyle:{color:'rgba(255,255,255,0.05)'}}},
+  series:[{
+    type:'bar',
+    data:[8,12,6,4,5,9,15,11],
+    coordinateSystem:'polar',
+    itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#4ECDC4'},{offset:1,color:'#45B7D1'}]},borderRadius:4},
+    barWidth:'60%'
+  }],
+  tooltip:{backgroundColor:'rgba(0,0,0,0.8)',borderColor:'transparent',textStyle:{color:'#fff'}}
+});
+
+// 降水量柱状图
+const rainChart = echarts.init(document.getElementById('rain-chart'));
+const days = ['周一','周二','周三','周四','周五','周六','周日'];
+const rainfall = [12,5,0,8,25,18,3];
+rainChart.setOption({
+  backgroundColor:'transparent',
+  grid:{top:20,right:20,bottom:30,left:50},
+  xAxis:{type:'category',data:days,axisLine:{lineStyle:{color:'rgba(255,255,255,0.2)'}},axisLabel:{color:'rgba(255,255,255,0.5)'}},
+  yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(255,255,255,0.05)'}},axisLabel:{color:'rgba(255,255,255,0.5)',formatter:'{value}mm'}},
+  series:[{
+    type:'bar',
+    data:rainfall,
+    itemStyle:{color:{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:'#45B7D1'},{offset:1,color:'#4ECDC4'}]},borderRadius:[6,6,0,0]},
+    barWidth:'50%',
+    animationDelay:(idx)=>idx*100
+  }],
+  tooltip:{trigger:'axis',backgroundColor:'rgba(0,0,0,0.8)',borderColor:'transparent',textStyle:{color:'#fff'}}
+});
+
+// 温度分布
+const distChart = echarts.init(document.getElementById('distribution-chart'));
+distChart.setOption({
+  backgroundColor:'transparent',
+  series:[{
+    type:'pie',
+    radius:['40%','70%'],
+    data:[
+      {value:35,name:'晴天',itemStyle:{color:'#FF6B6B'}},
+      {value:25,name:'多云',itemStyle:{color:'#F7DC6F'}},
+      {value:20,name:'雨天',itemStyle:{color:'#45B7D1'}},
+      {value:10,name:'阴天',itemStyle:{color:'#95A5A6'}},
+      {value:10,name:'其他',itemStyle:{color:'#9B59B6'}}
+    ],
+    label:{color:'rgba(255,255,255,0.7)',fontSize:12},
+    emphasis:{itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.5)'}},
+    animationType:'scale',
+    animationEasing:'elasticOut'
+  }],
+  tooltip:{backgroundColor:'rgba(0,0,0,0.8)',borderColor:'transparent',textStyle:{color:'#fff'}}
+});
+
+// 响应式
+window.addEventListener('resize',()=>{
+  tempChart.resize();
+  windChart.resize();
+  rainChart.resize();
+  distChart.resize();
+});
+</script>
+</body>
+</html>
