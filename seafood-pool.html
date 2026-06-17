@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>海鲜酒楼H5演示 - 海鲜池副机</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 16px;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        
+        .pool-card {
+            background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .pool-card.warning {
+            border-color: #f59e0b;
+            background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+        }
+        
+        .pool-card.danger {
+            border-color: #ef4444;
+            background: linear-gradient(145deg, #fee2e2 0%, #fecaca 100%);
+        }
+        
+        .pool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .pool-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .pool-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-normal {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .params-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .param-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .param-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        .param-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .param-value.high {
+            color: #ef4444;
+        }
+        
+        .param-value.low {
+            color: #3b82f6;
+        }
+        
+        .inventory-list {
+            margin-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 12px;
+        }
+        
+        .inventory-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        
+        .inventory-item:last-child {
+            border-bottom: none;
+        }
+        
+        .seafood-name {
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .seafood-quantity {
+            font-size: 14px;
+            font-weight: 500;
+            color: #059669;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .update-time {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 320px) {
+            .params-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦞 海鲜酒楼监控系统</h1>
+        <p>海鲜池副机实时监控面板</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">8</div>
+            <div class="stat-label">海鲜池总数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">6</div>
+            <div class="stat-label">正常运行</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">2</div>
+            <div class="stat-label">需要关注</div>
+        </div>
+    </div>
+    
+    <div class="glass-card">
+        <h2 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">海鲜池状态</h2>
+        
+        <!-- 海鲜池1 -->
+        <div class="pool-card">
+            <div class="pool-header">
+                <div class="pool-name">1号池 - 龙虾区</div>
+                <div class="pool-status status-normal">正常</div>
+            </div>
+            <div class="params-grid">
+                <div class="param-item">
+                    <div class="param-label">水温</div>
+                    <div class="param-value">18.5°C</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">盐度</div>
+                    <div class="param-value">35‰</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">pH值</div>
+                    <div class="param-value">8.1</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">溶氧量</div>
+                    <div class="param-value">6.2mg/L</div>
+                </div>
+            </div>
+            <div class="inventory-list">
+                <div class="inventory-title">库存清单</div>
+                <div class="inventory-item">
+                    <span class="seafood-name">波士顿龙虾</span>
+                    <span class="seafood-quantity">24只</span>
+                </div>
+                <div class="inventory-item">
+                    <span class="seafood-name">澳洲龙虾</span>
+                    <span class="seafood-quantity">8只</span>
+                </div>
+            </div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="adjustTemp(1)">调节温度</button>
+                <button class="btn btn-secondary" onclick="viewDetails(1)">查看详情</button>
+            </div>
+        </div>
+        
+        <!-- 海鲜池2 -->
+        <div class="pool-card warning">
+            <div class="pool-header">
+                <div class="pool-name">2号池 - 蟹类区</div>
+                <div class="pool-status status-warning">警告</div>
+            </div>
+            <div class="params-grid">
+                <div class="param-item">
+                    <div class="param-label">水温</div>
+                    <div class="param-value high">22.3°C</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">盐度</div>
+                    <div class="param-value">32‰</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">pH值</div>
+                    <div class="param-value">7.8</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">溶氧量</div>
+                    <div class="param-value low">4.8mg/L</div>
+                </div>
+            </div>
+            <div class="inventory-list">
+                <div class="inventory-title">库存清单</div>
+                <div class="inventory-item">
+                    <span class="seafood-name">面包蟹</span>
+                    <span class="seafood-quantity">18只</span>
+                </div>
+                <div class="inventory-item">
+                    <span class="seafood-name">花蟹</span>
+                    <span class="seafood-quantity">32只</span>
+                </div>
+            </div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="adjustTemp(2)">调节温度</button>
+                <button class="btn btn-secondary" onclick="viewDetails(2)">查看详情</button>
+            </div>
+        </div>
+        
+        <!-- 海鲜池3 -->
+        <div class="pool-card">
+            <div class="pool-header">
+                <div class="pool-name">3号池 - 贝类区</div>
+                <div class="pool-status status-normal">正常</div>
+            </div>
+            <div class="params-grid">
+                <div class="param-item">
+                    <div class="param-label">水温</div>
+                    <div class="param-value">16.2°C</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">盐度</div>
+                    <div class="param-value">30‰</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">pH值</div>
+                    <div class="param-value">8.0</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">溶氧量</div>
+                    <div class="param-value">7.1mg/L</div>
+                </div>
+            </div>
+            <div class="inventory-list">
+                <div class="inventory-title">库存清单</div>
+                <div class="inventory-item">
+                    <span class="seafood-name">生蚝</span>
+                    <span class="seafood-quantity">120只</span>
+                </div>
+                <div class="inventory-item">
+                    <span class="seafood-name">扇贝</span>
+                    <span class="seafood-quantity">85只</span>
+                </div>
+                <div class="inventory-item">
+                    <span class="seafood-name">花甲</span>
+                    <span class="seafood-quantity">5kg</span>
+                </div>
+            </div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="adjustTemp(3)">调节温度</button>
+                <button class="btn btn-secondary" onclick="viewDetails(3)">查看详情</button>
+            </div>
+        </div>
+        
+        <!-- 海鲜池4 -->
+        <div class="pool-card danger">
+            <div class="pool-header">
+                <div class="pool-name">4号池 - 鱼类区</div>
+                <div class="pool-status status-danger">异常</div>
+            </div>
+            <div class="params-grid">
+                <div class="param-item">
+                    <div class="param-label">水温</div>
+                    <div class="param-value high">25.8°C</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">盐度</div>
+                    <div class="param-value high">38‰</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">pH值</div>
+                    <div class="param-value low">7.2</div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">溶氧量</div>
+                    <div class="param-value low">3.5mg/L</div>
+                </div>
+            </div>
+            <div class="inventory-list">
+                <div class="inventory-title">库存清单</div>
+                <div class="inventory-item">
+                    <span class="seafood-name">石斑鱼</span>
+                    <span class="seafood-quantity">12条</span>
+                </div>
+                <div class="inventory-item">
+                    <span class="seafood-name">多宝鱼</span>
+                    <span class="seafood-quantity">8条</span>
+                </div>
+            </div>
+            <div class="control-buttons">
+                <button class="btn btn-primary" onclick="adjustTemp(4)">紧急调节</button>
+                <button class="btn btn-secondary" onclick="viewDetails(4)">查看详情</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-card">
+        <h2 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">快捷操作</h2>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <button class="btn btn-primary" onclick="refreshData()" style="padding: 12px;">刷新数据</button>
+            <button class="btn btn-secondary" onclick="exportReport()" style="padding: 12px;">导出报表</button>
+            <button class="btn btn-secondary" onclick="showAlerts()" style="padding: 12px;">查看警报</button>
+            <button class="btn btn-secondary" onclick="systemSettings()" style="padding: 12px;">系统设置</button>
+        </div>
+    </div>
+    
+    <div class="update-time">
+        最后更新时间: 2024-01-15 14:30:25 | 数据刷新间隔: 30秒
+    </div>
+    
+    <script>
+        // 模拟数据更新
+        function updateData() {
+            const now = new Date();
+            const timeString = now.getFullYear() + '-' + 
+                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(now.getDate()).padStart(2, '0') + ' ' + 
+                String(now.getHours()).padStart(2, '0') + ':' + 
+                String(now.getMinutes()).padStart(2, '0') + ':' + 
+                String(now.getSeconds()).padStart(2, '0');
+            
+            document.querySelector('.update-time').textContent = 
+                `最后更新时间: ${timeString} | 数据刷新间隔: 30秒`;
+        }
+        
+        // 调节温度
+        function adjustTemp(poolId) {
+            const poolNames = {
+                1: '1号池 - 龙虾区',
+                2: '2号池 - 蟹类区', 
+                3: '3号池 - 贝类区',
+                4: '4号池 - 鱼类区'
+            };
+            
+            const newTemp = prompt(`请输入${poolNames[poolId]}的新目标温度 (°C):`, '18');
+            if (newTemp !== null) {
+                alert(`已设置${poolNames[poolId]}目标温度为 ${newTemp}°C，系统正在调节中...`);
+                // 这里可以添加实际的API调用
+            }
+        }
+        
+        // 查看详情
+        function viewDetails(poolId) {
+            alert(`正在加载${poolId}号池的详细数据...`);
+            // 这里可以跳转到详情页面
+        }
+        
+        // 刷新数据
+        function refreshData() {
+            alert('正在从服务器获取最新数据...');
+            updateData();
+            // 这里可以添加实际的数据刷新逻辑
+        }
+        
+        // 导出报表
+        function exportReport() {
+            alert('正在生成海鲜池监控报表...');
+            // 这里可以添加导出功能
+        }
+        
+        // 查看警报
+        function showAlerts() {
+            const alerts = [
+                '2号池水温过高 (22.3°C)',
+                '4号池溶氧量不足 (3.5mg/L)',
+                '4号池盐度异常 (38‰)'
+            ];
+            alert('当前警报:\n\n' + alerts.join('\n'));
+        }
+        
+        // 系统设置
+        function systemSettings() {
+            alert('系统设置功能开发中...');
+            // 这里可以打开设置面板
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateData();
+            
+            // 每30秒更新一次时间显示
+            setInterval(updateData, 30000);
+            
+            console.log('海鲜池监控系统已加载');
+        });
+        
+        // 添加触摸反馈
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+            });
+            
+            button.addEventListener('touchend', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
