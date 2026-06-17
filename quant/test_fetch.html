@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fetch测试</title>
+</head>
+<body style="padding:20px;font-family:sans-serif">
+<h3>Fetch测试</h3>
+<div id="result">测试中...</div>
+<script>
+document.getElementById('result').innerHTML = '开始fetch...';
+
+fetch('data/backtest_result.json?t=' + Date.now())
+  .then(r => {
+    document.getElementById('result').innerHTML = 'HTTP: ' + r.status;
+    return r.json();
+  })
+  .then(d => {
+    document.getElementById('result').innerHTML = '✅ 成功! daily_stats: ' + d.daily_stats.length + '天';
+  })
+  .catch(e => {
+    document.getElementById('result').innerHTML = '❌ 失败: ' + e.message;
+  });
+</script>
+</body>
+</html>
