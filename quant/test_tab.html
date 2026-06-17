@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tab切换测试</title>
+<style>
+body { font-family: -apple-system, sans-serif; padding: 20px; font-size: 14px; }
+.tab { display: inline-block; padding: 8px 16px; margin: 4px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; }
+.tab.active { background: #007aff; color: white; border-color: #007aff; }
+.content { padding: 16px; border: 1px solid #ddd; margin-top: 10px; border-radius: 8px; }
+.hidden { display: none; }
+.card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 12px; margin: 8px 0; }
+</style>
+</head>
+<body>
+<h1>Tab切换测试</h1>
+
+<div class="tabs">
+  <div class="tab active" data-tab="overview">策略概览</div>
+  <div class="tab" data-tab="recommend">实时推荐</div>
+  <div class="tab" data-tab="backtest">回测报告</div>
+</div>
+
+<div id="tab-overview" class="content">
+  <h2>✅ 策略概览Tab</h2>
+  <p>这是默认显示的Tab</p>
+</div>
+
+<div id="tab-recommend" class="content hidden">
+  <h2>实时推荐Tab</h2>
+  <div id="recList">加载中...</div>
+</div>
+
+<div id="tab-backtest" class="content hidden">
+  <h2>回测报告Tab</h2>
+  <div id="btStats">加载中...</div>
+</div>
+
+<div id="log" style="margin-top:20px;font-size:12px;color:#666;"></div>
+
+<script>
+(function(){
+  const log = document.getElementById('log');
+  function addLog(msg) { log.innerHTML += '<div>' + msg + '</div>'; }
+  
+  addLog('JS开始执行...');
+  
+  let recData = null, btData = null;
+  
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function(){
+      addLog('点击Tab: ' + this.dataset.tab);
+      
+      // 切换active状态
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      // 隐藏所有内容，显示当前内容
+      document.querySelectorAll('[id^="tab-"]').forEach(p => p.classList.add('hidden'));
+      const targetId = 'tab-' + this.dataset.tab;
+      const targetEl = document.getElementById(targetId);
+      
+      if(targetEl) {
+        targetEl.classList.remove('hidden');
+        addLog('显示: ' + targetId + ' ✓');
+      } else {
+        addLog('ERROR: 找不到 ' + targetId + ' ✗');
+      }
+      
+      // 触发渲染
+      if(this.dataset.tab === 'recommend' && recData) {
+        addLog('触发renderRecommend...');
+        renderRecommend();
+      }
+      if(this.dataset.tab === 'backtest' && btData) {
+        addLog('触发renderBacktest...');
+        renderBacktest();
+      }
+    });
+  });
+  
+  addLog('Tab事件绑定完成');
+  
+  // Load data
+  addLog('开始加载数据...');
+  
+  fetch('data/alpha191_recommendations.json?t=' + Date.now())
+    .then(r => {
+      addLog('推荐数据HTTP: ' + r.status);
+      return r.json();
+    })
+    .then(d => {
+      recData = d;
+      addLog('推荐数据加载成功: ' + d.top_picks.length + '只');
+      document.getElementById('recList').innerHTML = 
+        '<div class="card">✅ 加载成功: ' + d.top_picks[0].name + ' (' + d.top_picks[0].score + '分)</div>';
+    })
+    .catch(e => addLog('推荐数据ERROR: ' + e.message));
+  
+  fetch('data/backtest_result.json?t=' + Date.now())
+    .then(r => r.json())
+    .then(d => {
+      btData = d;
+      addLog('回测数据加载成功: ' + d.daily_stats.length + '天');
+      document.getElementById('btStats').innerHTML = 
+        '<div class="card">✅ 加载成功: ' + d.period + '</div>';
+    })
+    .catch(e => addLog('回测数据ERROR: ' + e.message));
+  
+  function renderRecommend() {
+    const container = document.getElementById('recList');
+    container.innerHTML = '<div class="card">渲染推荐: ' + recData.top_picks.length + '只</div>';
+  }
+  
+  function renderBacktest() {
+    const container = document.getElementById('btStats');
+    container.innerHTML = '<div class="card">渲染回测: ' + btData.daily_stats.length + '天</div>';
+  }
+})();
+</script>
+</body>
+</html>
