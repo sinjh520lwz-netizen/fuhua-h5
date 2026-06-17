@@ -248,7 +248,7 @@ function getLocation(){
 
 async function loadWeather(){
   try{
-    var r=await fetch('/api/weather?lat='+userLat+'&lng='+userLng);
+    var r=await fetch(API_CONFIG.getUrl('/data/weather.json'));
     var j=await r.json();
     weatherData=j.data||j;
     renderWeatherCard();
@@ -444,7 +444,7 @@ var quantLoaded=false;
 function loadQuantData(){
   if(quantLoaded)return;quantLoaded=true;
   var el=document.getElementById('quant-content');
-  fetch('/h5/quant/data/jh_summary.json?v='+Date.now())
+  fetch('/data/jh_summary.json?v='+Date.now())
     .then(function(r){return r.json()})
     .then(function(d){
       var bt=d.backtest;
