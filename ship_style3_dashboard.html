@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>风格3: 数据仪表盘</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;background:#0a0a1a;color:white;min-height:100vh;-webkit-font-smoothing:antialiased}
+.container{max-width:480px;margin:0 auto;padding:20px}
+
+/* 顶部 */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.header h1{font-size:24px;font-weight:700}
+.header-time{font-size:13px;color:rgba(255,255,255,0.5)}
+
+/* 大统计卡片 */
+.hero-stat{
+  background:linear-gradient(135deg,#1e3a5f,#0d2137);
+  border-radius:24px;padding:32px;
+  margin-bottom:20px;
+  position:relative;overflow:hidden;
+}
+.hero-stat::before{
+  content:'';position:absolute;top:-50%;right:-50%;
+  width:100%;height:100%;
+  background:radial-gradient(circle,rgba(59,130,246,0.2),transparent);
+  animation:pulse 4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.hero-stat-value{font-size:64px;font-weight:200;line-height:1;position:relative}
+.hero-stat-label{font-size:16px;color:rgba(255,255,255,0.7);margin-top:8px;position:relative}
+.hero-stat-sub{font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px;position:relative}
+
+/* 统计网格 */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.stat-card{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;padding:20px;
+}
+.stat-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-card-icon{font-size:24px}
+.stat-card-trend{font-size:12px;padding:2px 8px;border-radius:10px}
+.stat-card-trend.up{background:rgba(16,185,129,0.2);color:#10B981}
+.stat-card-trend.down{background:rgba(239,68,68,0.2);color:#EF4444}
+.stat-card-value{font-size:28px;font-weight:700;margin-bottom:4px}
+.stat-card-label{font-size:12px;color:rgba(255,255,255,0.5)}
+
+/* 环形图 */
+.ring-chart{
+  width:120px;height:120px;margin:0 auto 16px;
+  position:relative;
+}
+.ring-chart svg{transform:rotate(-90deg)}
+.ring-chart-value{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring-chart-number{font-size:28px;font-weight:700}
+.ring-chart-label{font-size:11px;color:rgba(255,255,255,0.5)}
+
+/* 船舶列表 */
+.section-title{font-size:17px;font-weight:600;margin-bottom:12px}
+.ship-list{display:flex;flex-direction:column;gap:8px}
+.ship-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+  cursor:pointer;transition:all 0.2s;
+}
+.ship-item:active{background:rgba(255,255,255,0.1)}
+.ship-avatar{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.ship-avatar.port{background:rgba(59,130,246,0.2)}
+.ship-avatar.sea{background:rgba(16,185,129,0.2)}
+.ship-avatar.nansha{background:rgba(245,158,11,0.2)}
+.ship-info{flex:1}
+.ship-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.ship-meta{font-size:12px;color:rgba(255,255,255,0.4)}
+.ship-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ship-status-dot.port{background:#3B82F6}
+.ship-status-dot.sea{background:#10B981}
+.ship-status-dot.nansha{background:#F59E0B}
+
+/* 底部导航 */
+.tabbar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(10,10,26,0.95);
+  backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,255,255,0.1);
+  display:flex;padding:8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom));
+}
+.tab{flex:1;text-align:center;padding:8px;color:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.2s}
+.tab.active{color:white}
+.tab-icon{font-size:20px;margin-bottom:4px}
+.tab-label{font-size:10px;font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📊 船舶监控</h1>
+    <div class="header-time" id="currentTime">--:--</div>
+  </div>
+  
+  <div class="hero-stat">
+    <div class="hero-stat-value" id="totalShips">--</div>
+    <div class="hero-stat-label">在管船舶</div>
+    <div class="hero-stat-sub">富华捕虾公司 · 北海侨港</div>
+  </div>
+  
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <span class="stat-card-icon">⚓</span>
+        <span class="stat-card-trend up">● 在线</span>
+      </div>
+      <div class="stat-card-value" id="statPort">--</div>
+      <div class="stat-card-label">在港船舶</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <span class="stat-card-icon">🌊</span>
+        <span class="stat-card-trend up">● 作业中</span>
+      </div>
+      <div class="stat-card-value" id="statSea">--</div>
+      <div class="stat-card-label">出海船舶</div>
+    </div>
+    <div class="stat-card">
+      <div class="ring-chart">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#10B981" stroke-width="10" stroke-dasharray="314" stroke-dashoffset="94" stroke-linecap="round" id="ringProgress"/>
+        </svg>
+        <div class="ring-chart-value">
+          <div class="ring-chart-number" id="inspectRate">--%</div>
+          <div class="ring-chart-label">年检率</div>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-header">
+        <span class="stat-card-icon">⚠️</span>
+        <span class="stat-card-trend down">需处理</span>
+      </div>
+      <div class="stat-card-value" id="statExpired">--</div>
+      <div class="stat-card-label">年检过期</div>
+    </div>
+  </div>
+  
+  <div class="section-title">最近船舶</div>
+  <div class="ship-list" id="shipList">
+    <div style="text-align:center;padding:40px;color:rgba(255,255,255,0.3)">加载中...</div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab active"><div class="tab-icon">📊</div><div class="tab-label">监控</div></div>
+  <div class="tab"><div class="tab-icon">📍</div><div class="tab-label">地图</div></div>
+  <div class="tab"><div class="tab-icon">📋</div><div class="tab-label">档案</div></div>
+  <div class="tab"><div class="tab-icon">⚙️</div><div class="tab-label">设置</div></div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+let ships = [];
+
+async function loadShips() {
+  const res = await fetch(API_CONFIG.getUrl('/api/ships'));
+  const data = await res.json();
+  ships = data.data || [];
+  updateStats();
+  renderShips();
+}
+
+function updateStats() {
+  const total = ships.length;
+  const port = ships.filter(s => !s.isSouthSea && !s.remark?.includes('锚地')).length;
+  const sea = ships.filter(s => !s.isSouthSea && s.remark?.includes('锚地')).length;
+  const nansha = ships.filter(s => s.isSouthSea).length;
+  const inspected = ships.filter(s => s.isInspected).length;
+  const expired = ships.filter(s => s.annualStatus === 'expired').length;
+  const inspectRate = Math.round((inspected / total) * 100);
+  
+  document.getElementById('totalShips').textContent = total;
+  document.getElementById('statPort').textContent = port;
+  document.getElementById('statSea').textContent = sea + nansha;
+  document.getElementById('statExpired').textContent = expired;
+  document.getElementById('inspectRate').textContent = inspectRate + '%';
+  
+  // 更新环形图
+  const circumference = 314;
+  const offset = circumference - (inspectRate / 100) * circumference;
+  document.getElementById('ringProgress').setAttribute('stroke-dashoffset', offset);
+}
+
+function getStatus(s) {
+  if (s.isSouthSea) return 'nansha';
+  if (s.remark?.includes('锚地')) return 'sea';
+  return 'port';
+}
+
+function renderShips() {
+  const list = document.getElementById('shipList');
+  const recent = ships.slice(0, 8);
+  
+  list.innerHTML = recent.map(s => {
+    const status = getStatus(s);
+    
+    return `
+      <div class="ship-item">
+        <div class="ship-avatar ${status}">🚢</div>
+        <div class="ship-info">
+          <div class="ship-name">${s.shipName}</div>
+          <div class="ship-meta">${s.owner} · ${s.hullMaterial}</div>
+        </div>
+        <div class="ship-status-dot ${status}"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateTime() {
+  const now = new Date();
+  document.getElementById('currentTime').textContent = 
+    now.getHours().toString().padStart(2,'0') + ':' + 
+    now.getMinutes().toString().padStart(2,'0');
+}
+
+loadShips();
+updateTime();
+setInterval(updateTime, 60000);
+</script>
+</body>
+</html>
