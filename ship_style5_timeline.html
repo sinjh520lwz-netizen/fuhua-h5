@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>风格5: 时间线动态</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;background:#F5F5F7;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* 顶部 */
+.header{
+  position:sticky;top:0;z-index:100;
+  padding:16px 20px;padding-top:calc(16px + env(safe-area-inset-top));
+  background:rgba(255,255,255,0.9);
+  backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid rgba(0,0,0,0.06);
+}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:20px;font-weight:700}
+.header-badge{padding:6px 14px;border-radius:20px;background:#FEF3C7;color:#D97706;font-size:12px;font-weight:600}
+
+/* 日期选择 */
+.date-scroll{
+  display:flex;gap:12px;padding:16px 20px;
+  overflow-x:auto;scrollbar-width:none;
+}
+.date-scroll::-webkit-scrollbar{display:none}
+.date-item{
+  display:flex;flex-direction:column;align-items:center;
+  padding:12px 16px;border-radius:16px;
+  background:white;min-width:60px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  cursor:pointer;transition:all 0.2s;
+}
+.date-item.active{background:#1F2937;color:white}
+.date-day{font-size:11px;color:#9CA3AF;margin-bottom:4px}
+.date-item.active .date-day{color:rgba(255,255,255,0.6)}
+.date-num{font-size:18px;font-weight:700}
+.date-dot{width:4px;height:4px;border-radius:50%;background:#3B82F6;margin-top:6px}
+.date-item.active .date-dot{background:#10B981}
+
+/* 时间线 */
+.timeline{padding:20px}
+.timeline-date{
+  font-size:13px;color:#9CA3AF;
+  padding:0 0 16px 24px;
+  border-left:2px solid #E5E7EB;
+  margin-left:11px;
+}
+
+.timeline-item{
+  position:relative;
+  padding:0 0 24px 24px;
+  border-left:2px solid #E5E7EB;
+  margin-left:11px;
+}
+.timeline-item:last-child{border-left-color:transparent}
+
+.timeline-dot{
+  position:absolute;left:-7px;top:0;
+  width:12px;height:12px;border-radius:50%;
+  border:2px solid white;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+.timeline-dot.port{background:#3B82F6}
+.timeline-dot.sea{background:#10B981}
+.timeline-dot.nansha{background:#F59E0B}
+.timeline-dot.alert{background:#EF4444}
+
+.timeline-card{
+  background:white;border-radius:14px;
+  padding:14px 16px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  animation:fadeInLeft 0.4s ease both;
+}
+@keyframes fadeInLeft{
+  from{opacity:0;transform:translateX(-20px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+.timeline-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.timeline-time{font-size:12px;color:#9CA3AF}
+.timeline-status{
+  padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:600;
+}
+.timeline-status.port{background:#EFF6FF;color:#3B82F6}
+.timeline-status.sea{background:#ECFDF5;color:#10B981}
+.timeline-status.nansha{background:#FFFBEB;color:#D97706}
+.timeline-status.alert{background:#FEE2E2;color:#EF4444}
+
+.timeline-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.timeline-desc{font-size:13px;color:#6B7280;line-height:1.5}
+.timeline-meta{
+  display:flex;gap:12px;margin-top:10px;
+  font-size:12px;color:#9CA3AF;
+}
+
+/* 快捷操作 */
+.quick-actions{
+  display:flex;gap:12px;padding:0 20px 20px;
+}
+.quick-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px;background:white;border-radius:14px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  font-size:13px;font-weight:600;cursor:pointer;
+  transition:all 0.2s;
+}
+.quick-btn:active{transform:scale(0.95);background:#F9FAFB}
+.quick-btn-icon{font-size:18px}
+
+/* 筛选按钮 */
+.filter-fab{
+  position:fixed;bottom:20px;right:20px;z-index:100;
+  width:56px;height:56px;border-radius:50%;
+  background:#1F2937;color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.2);
+  cursor:pointer;transition:all 0.2s;
+}
+.filter-fab:active{transform:scale(0.9)}
+
+/* 筛选面板 */
+.filter-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:white;border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.filter-panel.active{transform:translateY(0)}
+.filter-panel-handle{width:36px;height:4px;background:#D1D5DB;border-radius:2px;margin:0 auto 16px}
+.filter-panel-title{font-size:17px;font-weight:600;margin-bottom:16px}
+.filter-options{display:flex;flex-wrap:wrap;gap:8px}
+.filter-option{
+  padding:10px 16px;border-radius:20px;
+  background:#F3F4F6;font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.2s;
+}
+.filter-option.active{background:#1F2937;color:white}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>📅 船舶动态</h1>
+    <div class="header-badge">休渔期</div>
+  </div>
+</div>
+
+<div class="date-scroll" id="dateScroll"></div>
+
+<div class="quick-actions">
+  <div class="quick-btn"><span class="quick-btn-icon">📍</span>查看地图</div>
+  <div class="quick-btn"><span class="quick-btn-icon">🔍</span>搜索船舶</div>
+  <div class="quick-btn"><span class="quick-btn-icon">📊</span>数据统计</div>
+</div>
+
+<div class="timeline" id="timeline"></div>
+
+<div class="filter-fab" onclick="toggleFilter()">⚙️</div>
+
+<div class="filter-panel" id="filterPanel">
+  <div class="filter-panel-handle"></div>
+  <div class="filter-panel-title">筛选条件</div>
+  <div class="filter-options">
+    <div class="filter-option active">全部</div>
+    <div class="filter-option">在港</div>
+    <div class="filter-option">出海</div>
+    <div class="filter-option">南沙</div>
+    <div class="filter-option">年检过期</div>
+    <div class="filter-option">木质船</div>
+    <div class="filter-option">钢质船</div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+let ships = [];
+
+async function loadShips() {
+  const res = await fetch(API_CONFIG.getUrl('/api/ships'));
+  const data = await res.json();
+  ships = data.data || [];
+  renderDates();
+  renderTimeline();
+}
+
+function renderDates() {
+  const scroll = document.getElementById('dateScroll');
+  const today = new Date();
+  const days = ['日','一','二','三','四','五','六'];
+  
+  let html = '';
+  for(let i = -3; i <= 3; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() + i);
+    const isActive = i === 0;
+    
+    html += `
+      <div class="date-item ${isActive ? 'active' : ''}">
+        <div class="date-day">周${days[date.getDay()]}</div>
+        <div class="date-num">${date.getDate()}</div>
+        <div class="date-dot"></div>
+      </div>
+    `;
+  }
+  scroll.innerHTML = html;
+}
+
+function getStatus(s) {
+  if (s.isSouthSea) return 'nansha';
+  if (s.remark?.includes('锚地')) return 'sea';
+  return 'port';
+}
+
+function getStatusText(s) {
+  if (s.isSouthSea) return '南沙';
+  if (s.remark?.includes('锚地')) return '出海';
+  return '在港';
+}
+
+function renderTimeline() {
+  const timeline = document.getElementById('timeline');
+  
+  // 生成模拟动态数据
+  const events = [];
+  const times = ['08:00','09:15','10:30','11:45','14:00','15:20','16:35','17:50'];
+  
+  ships.slice(0, 10).forEach((s, i) => {
+    const status = getStatus(s);
+    const statusText = getStatusText(s);
+    const time = times[i % times.length];
+    
+    let desc = '';
+    let type = status;
+    
+    if (status === 'port') {
+      desc = `${s.shipName} 已停靠${s.remark || '港口'}，船主${s.owner}确认安全`;
+    } else if (status === 'sea') {
+      desc = `${s.shipName} 正在作业海域，北斗设备在线`;
+    } else {
+      desc = `${s.shipName} 在南沙海域作业，预计返航时间待定`;
+      type = 'nansha';
+    }
+    
+    // 随机添加告警
+    if (Math.random() > 0.8) {
+      desc = `⚠️ ${s.shipName} 年检已过期，请及时处理`;
+      type = 'alert';
+    }
+    
+    events.push({
+      time,
+      title: s.shipName,
+      desc,
+      status: type,
+      statusText: type === 'alert' ? '需处理' : statusText,
+      ship: s
+    });
+  });
+  
+  // 按时间排序
+  events.sort((a, b) => a.time.localeCompare(b.time));
+  
+  timeline.innerHTML = `
+    <div class="timeline-date">今天</div>
+    ${events.map((e, i) => `
+      <div class="timeline-item" style="animation-delay:${i * 0.1}s">
+        <div class="timeline-dot ${e.status}"></div>
+        <div class="timeline-card">
+          <div class="timeline-header">
+            <div class="timeline-time">${e.time}</div>
+            <div class="timeline-status ${e.status}">${e.statusText}</div>
+          </div>
+          <div class="timeline-title">${e.title}</div>
+          <div class="timeline-desc">${e.desc}</div>
+          <div class="timeline-meta">
+            <span>👤 ${e.ship.owner}</span>
+            <span>📞 ${e.ship.tel}</span>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function toggleFilter() {
+  document.getElementById('filterPanel').classList.toggle('active');
+}
+
+// 筛选选项点击
+document.querySelectorAll('.filter-option').forEach(option => {
+  option.addEventListener('click', function() {
+    document.querySelectorAll('.filter-option').forEach(o => o.classList.remove('active'));
+    this.classList.add('active');
+    toggleFilter();
+  });
+});
+
+loadShips();
+</script>
+</body>
+</html>
