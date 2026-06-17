@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>回测报告调试</title>
+<style>
+body{font-family:-apple-system,sans-serif;padding:16px;font-size:14px;background:#f2f2f7}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.error{color:red;font-weight:bold}
+.success{color:green}
+</style>
+</head>
+<body>
+<h3>回测报告调试</h3>
+<div id="log"></div>
+<div id="result"></div>
+
+<script>
+const log = document.getElementById('log');
+const result = document.getElementById('result');
+function addLog(msg, type) {
+  log.innerHTML += '<div class="'+(type||'')+'">'+msg+'</div>';
+}
+
+addLog('1. 开始加载回测数据...', 'success');
+
+let btData = null;
+
+fetch('data/backtest_result.json?t=' + Date.now())
+  .then(r => {
+    addLog('2. HTTP状态: ' + r.status, r.ok ? 'success' : 'error');
+    return r.json();
+  })
+  .then(d => {
+    btData = d;
+    addLog('3. 数据加载成功', 'success');
+    addLog('   daily_stats: ' + d.daily_stats.length + '天', 'success');
+    
+    // 测试renderBacktest
+    try {
+      addLog('4. 开始执行renderBacktest...', 'success');
+      
+      let totalPicks = 0, totalT1 = 0, totalT3 = 0, t1Wins = 0, t3Wins = 0;
+      d.daily_stats.forEach(day => {
+        totalPicks += day.picks_count;
+        totalT1 += day.t1_avg_return * day.picks_count;
+        totalT3 += day.t3_avg_return * day.picks_count;
+        day.picks.forEach(p => {
+          if(p.t1_return > 0) t1Wins++;
+          if(p.t3_return > 0) t3Wins++;
+        });
+      });
+      
+      const avgT1 = (totalT1 / totalPicks).toFixed(2);
+      const avgT3 = (totalT3 / totalPicks).toFixed(2);
+      const t1WR = ((t1Wins / totalPicks) * 100).toFixed(1);
+      const t3WR = ((t3Wins / totalPicks) * 100).toFixed(1);
+      
+      addLog('5. 统计计算完成', 'success');
+      addLog('   总推荐: ' + totalPicks, 'success');
+      addLog('   T+1均涨: ' + avgT1 + '%', 'success');
+      addLog('   T+3均涨: ' + avgT3 + '%', 'success');
+      
+      // 测试每日数据
+      d.daily_stats.forEach((day, idx) => {
+        day.picks.forEach((p, pickIdx) => {
+          // 检查是否有缺失字段
+          if(p.t1_return === undefined) addLog('   ERROR: day['+idx+'] pick['+pickIdx+'] 缺少t1_return', 'error');
+          if(p.t2_return === undefined) addLog('   ERROR: day['+idx+'] pick['+pickIdx+'] 缺少t2_return', 'error');
+          if(p.t3_return === undefined) addLog('   ERROR: day['+idx+'] pick['+pickIdx+'] 缺少t3_return', 'error');
+        });
+      });
+      
+      addLog('6. 数据验证完成 ✓', 'success');
+      
+      // 渲染简单版本
+      let html = '<div class="card"><h3>回测统计</h3>';
+      html += '<p>总推荐: ' + totalPicks + '</p>';
+      html += '<p>T+1均涨: ' + avgT1 + '% | T+3均涨: ' + avgT3 + '%</p>';
+      html += '<p>T+1胜率: ' + t1WR + '% | T+3胜率: ' + t3WR + '%</p>';
+      html += '</div>';
+      
+      html += '<div class="card"><h3>每日表现</h3>';
+      d.daily_stats.forEach(day => {
+        html += '<div style="padding:8px 0;border-bottom:1px solid #eee">';
+        html += '<b>' + day.date.slice(5) + '</b> | ';
+        html += '选股' + day.picks_count + '只 | ';
+        html += 'T+1: ' + (day.t1_avg_return>=0?'+':'') + day.t1_avg_return + '% | ';
+        html += 'T+3: ' + (day.t3_avg_return>=0?'+':'') + day.t3_avg_return + '%';
+        html += '</div>';
+      });
+      html += '</div>';
+      
+      result.innerHTML = html;
+      addLog('7. 渲染完成 ✓', 'success');
+      
+    } catch(e) {
+      addLog('ERROR: ' + e.message, 'error');
+      addLog('Stack: ' + e.stack, 'error');
+    }
+  })
+  .catch(e => addLog('Fetch ERROR: ' + e.message, 'error'));
+</script>
+</body>
+</html>
