@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>测试页面</title>
+<style>
+body { font-family: -apple-system, sans-serif; padding: 20px; }
+.card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 10px 0; }
+</style>
+</head>
+<body>
+<h1>数据加载测试</h1>
+<div id="result">加载中...</div>
+<script>
+fetch('data/alpha191_recommendations.json?t=' + Date.now())
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('result').innerHTML = 
+      '<div class="card">' +
+      '<h2>✅ 数据加载成功</h2>' +
+      '<p>推荐数量: ' + d.top_picks.length + '</p>' +
+      '<p>第1名: ' + d.top_picks[0].name + ' (' + d.top_picks[0].code + ')</p>' +
+      '<p>评分: ' + d.top_picks[0].score + '</p>' +
+      '</div>';
+  })
+  .catch(e => {
+    document.getElementById('result').innerHTML = 
+      '<div class="card" style="color:red">' +
+      '<h2>❌ 加载失败</h2>' +
+      '<p>' + e.message + '</p>' +
+      '</div>';
+  });
+</script>
+</body>
+</html>
