@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>原页面render测试</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,sans-serif;background:#f2f2f7;color:#1c1c1e;font-size:14px;padding:12px}
+.card{background:#fff;border:0.5px solid #e5e5ea;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.glass-card{background:rgba(255,255,255,0.72);border:0.5px solid rgba(255,255,255,0.5);border-radius:14px;padding:14px;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between}
+.stock-name{font-size:16px;font-weight:600}
+.stock-code{font-size:12px;color:#8e8e93}
+.stock-score{font-size:28px;font-weight:700;color:#007aff}
+.stock-price{font-size:18px;font-weight:600}
+.stock-change{font-size:13px;font-weight:500}
+.stock-change.up{color:#34c759}
+.stock-change.down{color:#ff3b30}
+.badge{position:absolute;top:12px;right:12px;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(0,122,255,0.08);color:#007aff}
+.stock-card{position:relative}
+.signal{display:inline-block;padding:4px 10px;border-radius:8px;font-size:12px;background:rgba(0,122,255,0.06);color:#007aff;margin:2px}
+.factor-bar{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px}
+.factor-bar .fname{width:60px;text-align:right;color:#8e8e93}
+.factor-bar .fbar{flex:1;height:4px;background:rgba(0,0,0,0.04);border-radius:2px;overflow:hidden}
+.factor-bar .fbar-fill{height:100%;border-radius:2px;background:#007aff}
+.factor-bar .fval{width:30px;font-size:11px;color:#8e8e93;text-align:right}
+.factor-detail{margin-top:8px;padding:10px;background:rgba(0,0,0,0.02);border-radius:8px;font-size:12px}
+.factor-detail .fd-row{display:flex;justify-content:space-between;padding:3px 0}
+.factor-detail .fd-label{color:#8e8e93}
+.factor-detail .fd-val{font-weight:500}
+.error{color:red;font-weight:bold;padding:10px;background:#fff3f3;border-radius:8px;margin:4px 0}
+.success{color:green;padding:4px 0}
+#log{font-size:12px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<h2 style="margin-bottom:12px">原页面renderRecommend测试</h2>
+<div id="log"></div>
+<div id="recList"></div>
+
+<script>
+(function(){
+  const log = document.getElementById('log');
+  function addLog(msg, type) {
+    log.innerHTML += '<div class="' + (type||'') + '">' + msg + '</div>';
+  }
+  
+  addLog('开始加载...', 'success');
+  
+  fetch('data/alpha191_recommendations.json?t=' + Date.now())
+    .then(r => r.json())
+    .then(recData => {
+      addLog('数据加载成功', 'success');
+      
+      try {
+        // 完全复制原页面的renderRecommend逻辑
+        const container = document.getElementById('recList');
+        
+        addLog('Step 1: 检查recData', 'success');
+        if(!recData) { addLog('ERROR: recData为空', 'error'); return; }
+        
+        addLog('Step 2: 检查stocks', 'success');
+        const stocks = recData.top_picks && recData.top_picks.length ? recData.top_picks : recData.all_stocks;
+        if(!stocks || !stocks.length){
+          container.innerHTML = '<div>今日暂无推荐</div>';
+          return;
+        }
+        addLog('stocks数量: ' + stocks.length, 'success');
+        
+        let html = '';
+        
+        addLog('Step 3: Market overview', 'success');
+        html += '<div class="glass-card"><div class="row"><div><span style="font-size:12px;color:#8e8e93">市场涨跌</span><div style="font-size:16px;font-weight:700;color:'+(recData.market_change>=0?'#34c759':'#ff3b30')+'">'+(recData.market_change>=0?'+':'')+recData.market_change+'%</div></div><div style="text-align:center"><span style="font-size:12px;color:#8e8e93">扫描</span><div style="font-size:16px;font-weight:700">'+recData.total_scanned+'</div></div><div style="text-align:center"><span style="font-size:12px;color:#8e8e93">候选</span><div style="font-size:16px;font-weight:700;color:#007aff">'+recData.total_candidates+'</div></div><div style="text-align:right"><span style="font-size:12px;color:#8e8e93">耗时</span><div style="font-size:16px;font-weight:700">'+recData.elapsed_seconds+'s</div></div></div></div>';
+        
+        addLog('Step 4: 遍历stocks', 'success');
+        stocks.forEach((s, idx) => {
+          addLog('  处理 #' + (idx+1) + ' ' + s.name, 'success');
+          
+          const chgClass = s.change >= 0 ? 'up' : 'down';
+          const chgSign = s.change >= 0 ? '+' : '';
+          
+          html += '<div class="card stock-card">';
+          html += '<div class="badge">#'+(idx+1)+'</div>';
+          html += '<div class="row"><div><div class="stock-name">'+s.name+'</div><div class="stock-code">'+s.code+'</div></div><div style="text-align:right"><div class="stock-score">'+s.score+'</div><div style="font-size:10px;color:#8e8e93">综合评分</div></div></div>';
+          html += '<div class="row" style="margin-top:8px"><div><div class="stock-price">¥'+s.price+'</div></div><div><span class="stock-change '+chgClass+'">'+chgSign+s.change+'%</span></div></div>';
+          
+          addLog('    ✓ 基本信息', 'success');
+          
+          // Signals
+          if(s.signals && s.signals.length){
+            html += '<div style="margin-top:8px">';
+            s.signals.forEach(sig => { html += '<span class="signal">'+sig+'</span>'; });
+            html += '</div>';
+            addLog('    ✓ signals', 'success');
+          }
+          
+          // Factors
+          if(s.factors){
+            const maxF = Math.max(...Object.values(s.factors));
+            html += '<div style="margin-top:10px">';
+            Object.entries(s.factors).forEach(([k,v])=>{
+              const pct = Math.abs(v) / maxF * 100;
+              html += '<div class="factor-bar"><div class="fname">'+k+'</div><div class="fbar"><div class="fbar-fill" style="width:'+pct+'%"></div></div><div class="fval">'+v.toFixed(1)+'</div></div>';
+            });
+            html += '</div>';
+            addLog('    ✓ factors', 'success');
+          }
+          
+          // Indicators
+          if(s.indicators){
+            html += '<div class="factor-detail">';
+            const ind = s.indicators;
+            if(ind.ma5) html += '<div class="fd-row"><span class="fd-label">MA5</span><span class="fd-val">'+ind.ma5+'</span></div>';
+            if(ind.ma10) html += '<div class="fd-row"><span class="fd-label">MA10</span><span class="fd-val">'+ind.ma10+'</span></div>';
+            if(ind.rsi14) html += '<div class="fd-row"><span class="fd-label">RSI14</span><span class="fd-val">'+ind.rsi14+'</span></div>';
+            if(ind.macd !== undefined) html += '<div class="fd-row"><span class="fd-label">MACD</span><span class="fd-val">'+ind.macd+'</span></div>';
+            html += '</div>';
+            addLog('    ✓ indicators', 'success');
+          }
+          
+          // Alpha
+          if(s.alpha){
+            html += '<div class="factor-detail" style="background:rgba(0,122,255,0.03);margin-top:6px">';
+            html += '<div style="font-size:11px;font-weight:600;color:#007aff;margin-bottom:4px">Alpha191 指标</div>';
+            const a = s.alpha;
+            Object.entries(a).slice(0, 5).forEach(([k,v])=>{
+              html += '<div class="fd-row"><span class="fd-label">'+k+'</span><span class="fd-val">'+v+'</span></div>';
+            });
+            html += '</div>';
+            addLog('    ✓ alpha', 'success');
+          }
+          
+          html += '</div>';
+        });
+        
+        addLog('Step 5: 写入DOM', 'success');
+        container.innerHTML = html;
+        addLog('✅ 渲染完成!', 'success');
+        
+      } catch(e) {
+        addLog('ERROR: ' + e.message, 'error');
+        addLog('Stack: ' + e.stack, 'error');
+      }
+    })
+    .catch(e => addLog('Fetch ERROR: ' + e.message, 'error'));
+})();
+</script>
+</body>
+</html>
