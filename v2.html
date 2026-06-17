@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>富华捕虾V2</title>
+<link rel="stylesheet" href="/h5/lib/leaflet.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--white:#fff;--bg:#F5F5F7;--card:#fff;--text:#1D1D1F;--text2:#6E6E73;--text3:#AEAEB2;--line:#E5E5EA;--blue:#007AFF;--green:#34C759;--orange:#FF9500;--red:#FF3B30;--radius:14px;--shadow:0 1px 3px rgba(0,0,0,.06);--safe-b:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5;overflow:hidden;touch-action:pan-y}
+#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;background:var(--bg);position:relative;overflow:hidden}
+.topbar{display:flex;align-items:center;padding:12px 16px 8px;background:var(--white);gap:10px;flex-shrink:0;z-index:10}
+.topbar .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#007AFF,#5856D6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0}
+.topbar .info{flex:1;min-width:0}
+.topbar .info h1{font-size:17px;font-weight:600;line-height:1.2}
+.topbar .info p{font-size:12px;color:var(--text3);margin-top:1px}
+.topbar .badge{font-size:11px;padding:3px 8px;border-radius:20px;background:#FEE2E2;color:#DC2626;font-weight:500;white-space:nowrap}
+.main{flex:1;overflow:hidden;position:relative}
+.pages-track{display:flex;height:100%;will-change:transform}
+.page{flex:0 0 100%;width:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 20px;background:var(--bg)}
+.page::-webkit-scrollbar{display:none}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);transition:transform .15s}
+.card:active{transform:scale(.985)}
+.card-title{font-size:14px;font-weight:600;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{text-align:center;background:var(--card);border-radius:12px;padding:12px 4px;box-shadow:var(--shadow)}
+.stat .num{font-size:24px;font-weight:700;line-height:1.1}
+.stat .label{font-size:11px;color:var(--text3);margin-top:4px}
+.weather-card{background:linear-gradient(135deg,#007AFF 0%,#5856D6 100%);border-radius:var(--radius);padding:20px;color:#fff;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,122,255,.2)}
+.weather-card .w-temp{font-size:44px;font-weight:200;line-height:1}
+.weather-card .w-desc{font-size:14px;opacity:.85;margin-top:4px}
+.weather-card .w-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.2)}
+.weather-card .w-item{text-align:center}
+.weather-card .w-item .wv{font-size:18px;font-weight:600}
+.weather-card .w-item .wl{font-size:11px;opacity:.7;margin-top:2px}
+.notice{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.notice:active{transform:scale(.97);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.notice .n-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.notice .n-tag{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.notice .n-tag.weather{background:#DBEAFE;color:#1D4ED8}
+.notice .n-tag.holiday{background:#FEE2E2;color:#DC2626}
+.notice .n-tag.urgent{background:#FEF3C7;color:#D97706}
+.notice .n-tag.info{background:#F0F0F0;color:#666}
+.notice .n-time{font-size:12px;color:var(--text3);margin-left:auto}
+.notice .n-title{font-size:15px;font-weight:500;line-height:1.4}
+.notice .n-preview{font-size:13px;color:var(--text2);margin-top:6px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ship-search{display:flex;gap:8px;margin-bottom:12px}
+.ship-search input{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:15px;background:var(--card);outline:none;transition:border-color .2s}
+.ship-search input:focus{border-color:var(--blue)}
+.ship-item{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
+.ship-item:active{transform:scale(.97)}
+.ship-item .s-head{display:flex;justify-content:space-between;align-items:center}
+.ship-item .s-name{font-size:16px;font-weight:600}
+.ship-item .s-status{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.ship-item .s-status.ok{background:#D1FAE5;color:#059669}
+.ship-item .s-status.expired{background:#FEE2E2;color:#DC2626}
+.ship-item .s-info{display:flex;gap:16px;margin-top:8px;font-size:13px;color:var(--text2)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s}
+.modal-overlay.show{display:flex;opacity:1}
+.modal{background:var(--white);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px 16px calc(20px + var(--safe-b));transform:translateY(100%);transition:transform .35s cubic-bezier(.25,.46,.45,.94)}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal .handle{width:36px;height:4px;background:#D1D1D6;border-radius:2px;margin:0 auto 16px}
+.modal h2{font-size:20px;font-weight:700;margin-bottom:16px}
+.modal .field{display:flex;padding:10px 0;border-bottom:1px solid #F2F2F7}
+.modal .field .fl{width:90px;color:var(--text3);font-size:14px;flex-shrink:0}
+.modal .field .fv{flex:1;font-size:14px}
+.modal .field .fv a{color:var(--blue);text-decoration:none}
+#map-container{position:relative;width:100%;height:100%}
+#map{width:100%;height:100%;background:#E8E8ED}
+.map-legend{position:absolute;bottom:16px;left:16px;background:rgba(255,255,255,.95);border-radius:12px;padding:10px 14px;font-size:12px;z-index:500;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.map-legend .lg-item{display:flex;align-items:center;gap:6px;margin:3px 0}
+.map-legend .dot{width:10px;height:10px;border-radius:50%}
+.tabbar{display:flex;background:rgba(255,255,255,.92);border-top:1px solid var(--line);padding:6px 0 calc(6px + var(--safe-b));flex-shrink:0;z-index:10;position:relative}
+.tab{flex:1;text-align:center;padding:4px 0;cursor:pointer;color:var(--text3);transition:color .25s;-webkit-tap-highlight-color:transparent}
+.tab .ticon{font-size:22px;line-height:1;transition:transform .25s}
+.tab .ttext{font-size:10px;margin-top:2px;font-weight:500;transition:color .25s}
+.tab.active{color:var(--blue)}
+.tab.active .ticon{transform:scale(1.15)}
+.loading{text-align:center;padding:40px;color:var(--text3)}
+.loading .spinner{width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .35s ease both}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="logo">富</div>
+    <div class="info">
+      <h1>富华捕虾公司</h1>
+      <p id="update-time">加载中...</p>
+    </div>
+    <div class="badge" id="season-badge">休渔期</div>
+  </div>
+  <div class="main" id="main-area">
+    <div class="pages-track" id="pages-track">
+      <div class="page" id="page-home">
+        <div class="stats" id="home-stats"></div>
+        <div class="weather-card" id="weather-card"></div>
+        <div class="card">
+          <div class="card-title">📢 最新公告</div>
+          <div id="home-notices"><div class="loading"><div class="spinner"></div>加载中...</div></div>
+        </div>
+      </div>
+      <div class="page" id="page-map">
+        <div id="map-container"><div id="map"></div></div>
+        <div class="map-legend">
+          <div class="lg-item"><div class="dot" style="background:#007AFF"></div>在港</div>
+          <div class="lg-item"><div class="dot" style="background:#34C759"></div>出海</div>
+          <div class="lg-item"><div class="dot" style="background:#FF9500"></div>南沙作业</div>
+        </div>
+      </div>
+      <div class="page" id="page-weather"><div id="weather-detail"><div class="loading"><div class="spinner"></div>加载海洋气象...</div></div></div>
+      <div class="page" id="page-notices"><div id="notices-list"><div class="loading"><div class="spinner"></div>加载公告...</div></div></div>
+      <div class="page" id="page-archive">
+        <div class="ship-search"><input type="text" id="ship-search-input" placeholder="搜索船名、船主、电话..."></div>
+        <div id="ship-list"><div class="loading"><div class="spinner"></div>加载船舶数据...</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabbar">
+    <div class="tab active" data-tab="0" onclick="switchTab(0)"><div class="ticon">🏠</div><div class="ttext">首页</div></div>
+    <div class="tab" data-tab="1" onclick="switchTab(1)"><div class="ticon">📍</div><div class="ttext">船位</div></div>
+    <div class="tab" data-tab="2" onclick="switchTab(2)"><div class="ticon">🌤</div><div class="ttext">气象</div></div>
+    <div class="tab" data-tab="3" onclick="switchTab(3)"><div class="ticon">📢</div><div class="ttext">公告</div></div>
+    <div class="tab" data-tab="4" onclick="switchTab(4)"><div class="ticon">📋</div><div class="ttext">档案</div></div>
+  </div>
+</div>
+<div class="modal-overlay" id="ship-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content">
+    <div class="handle"></div>
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<script src="js/config.js"></script>
+<script src="/h5/lib/leaflet.js"></script>
+<script>
+var ships=[],announcements=[],weatherData=null,map=null,markers=[],currentTab=0,mapInited=false;
+
+/* ── Tab switching with CSS transform ── */
+function switchTab(idx){
+  if(idx===currentTab)return;
+  currentTab=idx;
+  var track=document.getElementById('pages-track');
+  track.style.transition='transform .35s cubic-bezier(.25,.46,.45,.94)';
+  track.style.transform='translateX(-'+idx*100+'%)';
+  setTimeout(function(){track.style.transition='none';},400);
+  var tabs=document.querySelectorAll('.tab');
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('active',i===idx);
+  if(idx===1&&!mapInited)initMap();
+  if(idx===2)loadWeatherDetail();
+}
+
+/* ── Swipe to switch tabs ── */
+(function(){
+  var sx=0,sy=0,startTime=0,tracking=false;
+  var el=document.getElementById('main-area');
+  el.addEventListener('touchstart',function(e){
+    var t=e.touches[0];sx=t.clientX;sy=t.clientY;startTime=Date.now();tracking=true;
+  },{passive:true});
+  el.addEventListener('touchmove',function(e){
+    if(!tracking)return;
+    var t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dy)>Math.abs(dx)){tracking=false;return;}
+  },{passive:true});
+  el.addEventListener('touchend',function(e){
+    if(!tracking)return;tracking=false;
+    var t=e.changedTouches[0],dx=t.clientX-sx,dt=Date.now()-startTime;
+    if(Math.abs(dx)>50&&dt<400){
+      if(dx<0&&currentTab<4)switchTab(currentTab+1);
+      else if(dx>0&&currentTab>0)switchTab(currentTab-1);
+    }
+  },{passive:true});
+})();
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function formatTime(t){
+  if(!t)return'';
+  var d=new Date(t.replace(/\//g,'-'));
+  if(isNaN(d))return t;
+  var now=new Date(),diff=now-d;
+  if(diff<3600000)return Math.floor(diff/60000)+'分钟前';
+  if(diff<86400000)return Math.floor(diff/3600000)+'小时前';
+  return(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function getTag(type){
+  var m={'天气':{cls:'weather',text:'天气'},'休渔':{cls:'holiday',text:'休渔'},'紧急':{cls:'urgent',text:'紧急'},'通知':{cls:'info',text:'通知'}};
+  return m[type]||{cls:'info',text:type||'通知'};
+}
+function field(l,v){return'<div class="field"><div class="fl">'+l+'</div><div class="fv">'+(v||'--')+'</div></div>';}
+function closeModal(){document.getElementById('ship-modal').classList.remove('show');}
+
+async function loadShips(){
+  try{
+    var r=await fetch(API_CONFIG.getUrl('/api/ships'));
+    var j=await r.json();
+    ships=j.data||[];
+    renderHomeStats();
+    renderShipList();
+  }catch(e){console.error('Ships err:',e);}
+}
+async function loadAnnouncements(){
+  try{
+    var r=await fetch(API_CONFIG.getUrl('/api/announcements'));
+    var j=await r.json();
+    announcements=j.data||[];
+    renderHomeNotices();
+    renderNoticesList();
+  }catch(e){console.error('Ann err:',e);}
+}
+var userLat=21.45,userLng=109.12,locationName='北海';
+
+function getLocation(){
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(function(pos){
+    userLat=pos.coords.latitude;
+    userLng=pos.coords.longitude;
+    /* 简易反向地理编码：根据坐标范围判断城市 */
+    var names=[
+      {lat:21.48,lng:109.12,name:'北海'},
+      {lat:21.60,lng:108.35,name:'防城港'},
+      {lat:21.97,lng:108.62,name:'钦州'},
+      {lat:22.82,lng:108.32,name:'南宁'},
+      {lat:23.10,lng:109.40,name:'贵港'},
+      {lat:24.33,lng:109.42,name:'柳州'},
+      {lat:25.27,lng:110.29,name:'桂林'}
+    ];
+    var minD=1e9,best='当前位置';
+    for(var i=0;i<names.length;i++){
+      var d=Math.sqrt(Math.pow(names[i].lat-userLat,2)+Math.pow(names[i].lng-userLng,2));
+      if(d<minD){minD=d;best=names[i].name;}
+    }
+    if(minD>1)best='当前位置';
+    locationName=best;
+    loadWeather();
+  },function(){/* 拒绝定位就用默认北海 */},{timeout:8000,maximumAge:300000});
+}
+
+async function loadWeather(){
+  try{
+    var r=await fetch('/api/weather?lat='+userLat+'&lng='+userLng);
+    var j=await r.json();
+    weatherData=j.data||j;
+    renderWeatherCard();
+  }catch(e){console.error('Wx err:',e);}
+}
+
+function renderHomeStats(){
+  var t=ships.length,q=0,insp=0,ss=0;
+  for(var i=0;i<ships.length;i++){if(ships[i].isQiaogang)q++;if(ships[i].isInspected)insp++;if(ships[i].isSouthSea)ss++;}
+  document.getElementById('home-stats').innerHTML=
+    '<div class="stat fade-in"><div class="num" style="color:#007AFF">'+t+'</div><div class="label">渔船总数</div></div>'+
+    '<div class="stat fade-in" style="animation-delay:.05s"><div class="num" style="color:#34C759">'+q+'</div><div class="label">侨港船</div></div>'+
+    '<div class="stat fade-in" style="animation-delay:.1s"><div class="num" style="color:#FF9500">'+insp+'</div><div class="label">已年检</div></div>'+
+    '<div class="stat fade-in" style="animation-delay:.15s"><div class="num" style="color:#FF3B30">'+ss+'</div><div class="label">南沙船</div></div>';
+}
+
+function renderWeatherCard(){
+  if(!weatherData||!weatherData.hours)return;
+  var now=new Date(),hours=weatherData.hours,closest=hours[0],minDiff=1e15;
+  for(var i=0;i<hours.length;i++){var d=Math.abs(new Date(hours[i].time)-now);if(d<minDiff){minDiff=d;closest=hours[i];}}
+  var g=function(o){return o?(o.sg||o.ecmwf||o.noaa||0):0;};
+  var temp=g(closest.airTemperature).toFixed(1);
+  var wt=g(closest.waterTemperature).toFixed(1);
+  var wh=g(closest.waveHeight).toFixed(2);
+  var ws=g(closest.windSpeed).toFixed(1);
+  document.getElementById('weather-card').innerHTML=
+    '<div><div class="w-temp">'+temp+'&deg;</div><div class="w-desc">📍 '+locationName+' · 海洋实时气象</div></div>'+
+    '<div class="w-grid">'+
+    '<div class="w-item"><div class="wv">'+wh+'m</div><div class="wl">浪高</div></div>'+
+    '<div class="w-item"><div class="wv">'+ws+'</div><div class="wl">风速km/h</div></div>'+
+    '<div class="w-item"><div class="wv">'+wt+'&deg;</div><div class="wl">水温</div></div></div>';
+}
+
+function renderHomeNotices(){
+  var el=document.getElementById('home-notices');
+  var pinned=[];
+  for(var i=0;i<announcements.length;i++){if(announcements[i].pinned)pinned.push(announcements[i]);}
+  pinned=pinned.slice(0,3);
+  if(!pinned.length){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:16px">暂无公告</div>';return;}
+  var h='';
+  for(var i=0;i<pinned.length;i++){
+    var a=pinned[i],tag=getTag(a.type);
+    h+='<div class="notice fade-in" style="animation-delay:'+(i*.08)+'s" onclick="switchTab(3)"><div class="n-head"><span class="n-tag '+tag.cls+'">'+tag.text+'</span><span class="n-time">'+formatTime(a.publishTime)+'</span></div><div class="n-title">'+esc(a.title)+'</div><div class="n-preview">'+esc(a.content.substring(0,80))+'...</div></div>';
+  }
+  el.innerHTML=h;
+}
+
+function renderNoticesList(){
+  var el=document.getElementById('notices-list');
+  if(!announcements.length){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:40px">暂无公告</div>';return;}
+  var h='';
+  for(var i=0;i<announcements.length;i++){
+    var a=announcements[i],tag=getTag(a.type);
+    h+='<div class="notice" onclick="showNoticeDetail('+a.id+')"><div class="n-head"><span class="n-tag '+tag.cls+'">'+tag.text+'</span><span class="n-time">'+formatTime(a.publishTime)+'</span></div><div class="n-title">'+esc(a.title)+'</div><div class="n-preview">'+esc(a.content.substring(0,100))+'...</div></div>';
+  }
+  el.innerHTML=h;
+}
+function showNoticeDetail(id){
+  var a=null;
+  for(var i=0;i<announcements.length;i++){if(announcements[i].id===id){a=announcements[i];break;}}
+  if(!a)return;
+  document.getElementById('modal-title').textContent=a.title;
+  document.getElementById('modal-body').innerHTML='<div style="font-size:13px;color:var(--text3);margin-bottom:12px">'+a.publisher+' · '+formatTime(a.publishTime)+'</div><div style="font-size:15px;line-height:1.8;white-space:pre-wrap">'+esc(a.content)+'</div>';
+  document.getElementById('ship-modal').classList.add('show');
+}
+
+function renderShipList(filter){
+  var list=ships;
+  if(filter){
+    var q=filter.toLowerCase(),nl=[];
+    for(var i=0;i<ships.length;i++){
+      var s=ships[i];
+      if((s.shipName||'').toLowerCase().indexOf(q)>=0||(s.owner||'').toLowerCase().indexOf(q)>=0||(s.tel||'').indexOf(q)>=0)nl.push(s);
+    }
+    list=nl;
+  }
+  var el=document.getElementById('ship-list');
+  if(!list.length){el.innerHTML='<div style="color:var(--text3);text-align:center;padding:40px">无匹配船舶</div>';return;}
+  var h='';
+  for(var i=0;i<list.length;i++){
+    var s=list[i];
+    var sc=s.annualStatus==='ok'?'ok':'expired';
+    var st=s.annualStatus==='ok'?'年检正常':'已过期';
+    var idx=ships.indexOf(s);
+    h+='<div class="ship-item" onclick="showShipDetail('+idx+')"><div class="s-head"><span class="s-name">'+esc(s.shipName)+'</span><span class="s-status '+sc+'">'+st+'</span></div><div class="s-info"><span>👤 '+esc(s.owner)+'</span><span>📞 '+esc(s.tel)+'</span></div><div class="s-info"><span>'+esc(s.hullMaterial)+' · '+esc(s.fishingType)+'</span><span>'+(s.length||'--')+'m · '+(s.power||'--')+'kW</span></div></div>';
+  }
+  el.innerHTML=h;
+}
+
+function showShipDetail(idx){
+  var s=ships[idx];if(!s)return;
+  document.getElementById('modal-title').textContent=s.shipName;
+  var st=s.annualStatus==='ok'?'✅ 年检正常':'⚠️ 年检已过期';
+  var south=s.isSouthSea?' <span style="color:#FF9500">[南沙]</span>':'';
+  var h='';
+  h+=field('船主',s.owner+south);
+  h+=field('电话','<a href="tel:'+s.tel+'">'+s.tel+'</a>');
+  h+=field('地址',s.address||'--');
+  h+=field('船籍',s.district+' · '+s.port);
+  h+=field('船体',s.hullMaterial+' · '+s.fishingType);
+  h+=field('尺寸',(s.length||'--')+'m × '+(s.width||'--')+'m × '+(s.depth||'--')+'m');
+  h+=field('功率',(s.power||'--')+'kW');
+  h+=field('吨位','总'+(s.tonnage||'--')+'t / 净'+(s.netTonnage||'--')+'t');
+  h+=field('北斗ID',s.beidouId||'--');
+  h+=field('AIS码',s.aisCode||'--');
+  h+=field('建造日期',s.buildDate||'--');
+  h+=field('年检日期',s.annualInspect||'无');
+  h+=field('年检状态',st);
+  if(s.baobao_zhen)h+=field('包保镇',s.baobao_zhen.name+' '+(s.baobao_zhen.title||'')+' '+s.baobao_zhen.tel);
+  if(s.baobao_zf)h+=field('包保执法',s.baobao_zf.name+' '+s.baobao_zf.tel);
+  if(s.baobao_gs)h+=field('包保公司',s.baobao_gs.name+' '+(s.baobao_gs.title||'')+' '+s.baobao_gs.tel);
+  if(s.remark)h+=field('备注',s.remark);
+  document.getElementById('modal-body').innerHTML=h;
+  document.getElementById('ship-modal').classList.add('show');
+}
+
+function degToDir(deg){var d=['北','东北','东','东南','南','西南','西','西北'];return d[Math.round(deg/45)%8]+'风';}
+function loadWeatherDetail(){
+  if(!weatherData||!weatherData.hours)return;
+  var hours=weatherData.hours,now=new Date(),closest=hours[0],minDiff=1e15;
+  for(var i=0;i<hours.length;i++){var d=Math.abs(new Date(hours[i].time)-now);if(d<minDiff){minDiff=d;closest=hours[i];}}
+  var g=function(o){return o?(o.sg||o.ecmwf||o.noaa||o.meto||o.dwd||o.meteo||0):0;};
+  var temp=g(closest.airTemperature).toFixed(1);
+  var wt=g(closest.waterTemperature).toFixed(1);
+  var wh=g(closest.waveHeight).toFixed(2);
+  var wp=g(closest.wavePeriod).toFixed(1);
+  var ws=g(closest.windSpeed).toFixed(1);
+  var wd=degToDir(g(closest.windDirection));
+  var hum=g(closest.humidity).toFixed(0);
+  var pres=g(closest.pressure).toFixed(0);
+  var cloud=g(closest.cloudCover).toFixed(0);
+  var h='<div class="weather-card" style="margin-bottom:16px"><div style="font-size:14px;opacity:.8;margin-bottom:8px">🌍 '+locationName+' · 实时海洋气象</div><div><div class="w-temp">'+temp+'&deg;C</div><div class="w-desc">气温 · 水温 '+wt+'&deg;C</div></div><div class="w-grid"><div class="w-item"><div class="wv">'+wh+'m</div><div class="wl">浪高</div></div><div class="w-item"><div class="wv">'+wp+'s</div><div class="wl">浪周期</div></div><div class="w-item"><div class="wv">'+ws+'</div><div class="wl">风速km/h</div></div></div></div>';
+  h+='<div class="card"><div class="card-title">📊 详细数据</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  h+='<div style="background:#F9F9FB;border-radius:10px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:600">'+wd+'</div><div style="font-size:12px;color:var(--text3);margin-top:2px">风向</div></div>';
+  h+='<div style="background:#F9F9FB;border-radius:10px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:600">'+hum+'%</div><div style="font-size:12px;color:var(--text3);margin-top:2px">湿度</div></div>';
+  h+='<div style="background:#F9F9FB;border-radius:10px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:600">'+pres+'hPa</div><div style="font-size:12px;color:var(--text3);margin-top:2px">气压</div></div>';
+  h+='<div style="background:#F9F9FB;border-radius:10px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:600">'+cloud+'%</div><div style="font-size:12px;color:var(--text3);margin-top:2px">云量</div></div>';
+  h+='</div></div>';
+  h+='<div class="card"><div class="card-title">🕒 24小时预报</div><div style="display:flex;overflow-x:auto;gap:12px;padding-bottom:4px">';
+  var si=hours.indexOf(closest);
+  for(var i=si;i<Math.min(si+24,hours.length);i++){
+    var hr=hours[i],t=new Date(hr.time),lb=t.getHours()+':00';
+    h+='<div style="text-align:center;min-width:50px;flex-shrink:0"><div style="font-size:12px;color:var(--text3)">'+lb+'</div><div style="font-size:18px;font-weight:600;margin:4px 0">'+g(hr.airTemperature).toFixed(0)+'&deg;</div><div style="font-size:11px;color:var(--text3)">'+g(hr.waveHeight).toFixed(1)+'m</div></div>';
+  }
+  h+='</div></div>';
+  h+='<div style="text-align:center;font-size:12px;color:var(--text3);padding:16px">数据来源：StormGlass 海洋气象 · 北海气象台</div>';
+  document.getElementById('weather-detail').innerHTML=h;
+}
+
+/* ── Map init with China-friendly tiles ── */
+function initMap(){
+  if(mapInited)return;mapInited=true;
+  map=L.map('map',{
+    center:[21.45,109.12],
+    zoom:10,
+    zoomControl:false,
+    preferCanvas:true
+  });
+  /* 高德地图瓦片 - 国内加载快 */
+  L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{
+    subdomains:'1234',
+    maxZoom:18,
+    attribution:'&copy; Gaode'
+  }).addTo(map);
+  L.control.zoom({position:'topright'}).addTo(map);
+  var ports={'北海':[21.48,109.12],'北海港':[21.48,109.12],'电建':[21.43,109.13],'电建港':[21.43,109.13],'外沙锚地':[21.50,109.08],'幼沙港':[21.40,109.15],'企沙港':[21.60,108.35],'广东闸坡':[21.58,111.80]};
+  for(var i=0;i<ships.length;i++){
+    var s=ships[i],port=(s.port||'').replace(/\s/g,''),coords=ports[port]||[21.45+(Math.random()-.5)*.1,109.12+(Math.random()-.5)*.1];
+    var color='#007AFF';if(s.isSouthSea)color='#FF9500';else if(!s.isQiaogang)color='#34C759';
+    var icon=L.divIcon({className:'',html:'<div style="width:12px;height:12px;background:'+color+';border:2px solid #fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>',iconSize:[12,12],iconAnchor:[6,6]});
+    var m=L.marker(coords,{icon:icon}).addTo(map);
+    m.bindPopup('<b>'+s.shipName+'</b><br>'+s.owner+'<br>'+s.port);
+    markers.push(m);
+  }
+  /* Fix: force Leaflet to recalculate size after tab transition */
+  setTimeout(function(){map.invalidateSize();},400);
+}
+
+document.getElementById('ship-search-input').addEventListener('input',function(){renderShipList(this.value);});
+
+async function init(){
+  document.getElementById('update-time').textContent='更新于 '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  var now=new Date(),m=now.getMonth()+1,d=now.getDate();
+  var off=(m>5||(m===5&&d>=1))&&(m<8||(m===8&&d<=16));
+  document.getElementById('season-badge').textContent=off?'休渔期':'作业期';
+  document.getElementById('season-badge').style.background=off?'#FEE2E2':'#D1FAE5';
+  document.getElementById('season-badge').style.color=off?'#DC2626':'#059669';
+  getLocation();
+  await Promise.all([loadShips(),loadAnnouncements(),loadWeather()]);
+}
+init();
+</script>
+</body>
+</html>
