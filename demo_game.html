@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Demo 4: 打砖块游戏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:-apple-system,sans-serif;color:#fff;overflow:hidden}
+h1{font-size:24px;margin-bottom:16px;font-weight:700}
+.info{font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px}
+canvas{border-radius:12px;background:rgba(255,255,255,0.03);box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.score{position:fixed;top:20px;left:50%;transform:translateX(-50%);font-size:18px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="score">得分: <span id="score">0</span></div>
+<h1>🎮 打砖块</h1>
+<p class="info">← → 移动挡板 · 空格开始</p>
+<canvas id="game" width="480" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+
+// 游戏状态
+let score = 0;
+let gameRunning = false;
+
+// 挡板
+const paddle = {
+  x: canvas.width / 2 - 50,
+  y: canvas.height - 30,
+  width: 100,
+  height: 12,
+  speed: 8,
+  dx: 0
+};
+
+// 球
+const ball = {
+  x: canvas.width / 2,
+  y: canvas.height - 50,
+  radius: 8,
+  speed: 5,
+  dx: 4,
+  dy: -4
+};
+
+// 砖块
+const brickRows = 6;
+const brickCols = 8;
+const brickWidth = 52;
+const brickHeight = 20;
+const brickPadding = 4;
+const brickOffsetTop = 60;
+const brickOffsetLeft = 18;
+const bricks = [];
+
+const colors = ['#FF6B6B','#F7DC6F','#4ECDC4','#45B7D1','#96CEB4','#DDA0DD'];
+
+for(let row = 0; row < brickRows; row++){
+  bricks[row] = [];
+  for(let col = 0; col < brickCols; col++){
+    bricks[row][col] = { x: 0, y: 0, alive: true, color: colors[row] };
+  }
+}
+
+// 粒子效果
+const particles = [];
+
+function createParticles(x, y, color){
+  for(let i = 0; i < 10; i++){
+    particles.push({
+      x, y,
+      dx: (Math.random() - 0.5) * 6,
+      dy: (Math.random() - 0.5) * 6,
+      size: Math.random() * 4 + 2,
+      color,
+      life: 1
+    });
+  }
+}
+
+// 绘制挡板
+function drawPaddle(){
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 6);
+  ctx.fill();
+}
+
+// 绘制球
+function drawBall(){
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#FF6B6B';
+  ctx.fill();
+  ctx.closePath();
+  
+  // 发光效果
+  ctx.shadowColor = '#FF6B6B';
+  ctx.shadowBlur = 15;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// 绘制砖块
+function drawBricks(){
+  for(let row = 0; row < brickRows; row++){
+    for(let col = 0; col < brickCols; col++){
+      if(bricks[row][col].alive){
+        const brickX = brickOffsetLeft + col * (brickWidth + brickPadding);
+        const brickY = brickOffsetTop + row * (brickHeight + brickPadding);
+        bricks[row][col].x = brickX;
+        bricks[row][col].y = brickY;
+        
+        ctx.fillStyle = bricks[row][col].color;
+        ctx.beginPath();
+        ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+// 绘制粒子
+function drawParticles(){
+  for(let i = particles.length - 1; i >= 0; i--){
+    const p = particles[i];
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    p.x += p.dx;
+    p.y += p.dy;
+    p.life -= 0.02;
+    
+    if(p.life <= 0) particles.splice(i, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// 碰撞检测
+function collisionDetection(){
+  for(let row = 0; row < brickRows; row++){
+    for(let col = 0; col < brickCols; col++){
+      const brick = bricks[row][col];
+      if(brick.alive){
+        if(ball.x > brick.x && ball.x < brick.x + brickWidth &&
+           ball.y > brick.y && ball.y < brick.y + brickHeight){
+          ball.dy = -ball.dy;
+          brick.alive = false;
+          score += 10;
+          scoreEl.textContent = score;
+          createParticles(brick.x + brickWidth/2, brick.y + brickHeight/2, brick.color);
+        }
+      }
+    }
+  }
+}
+
+// 移动球
+function moveBall(){
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+  
+  // 边界检测
+  if(ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) ball.dx = -ball.dx;
+  if(ball.y - ball.radius < 0) ball.dy = -ball.dy;
+  
+  // 挡板碰撞
+  if(ball.y + ball.radius > paddle.y && 
+     ball.x > paddle.x && ball.x < paddle.x + paddle.width){
+    ball.dy = -ball.dy;
+    // 根据击中位置改变角度
+    const hitPos = (ball.x - paddle.x) / paddle.width;
+    ball.dx = 8 * (hitPos - 0.5);
+  }
+  
+  // 游戏结束
+  if(ball.y + ball.radius > canvas.height){
+    gameRunning = false;
+    alert('游戏结束！得分: ' + score);
+    resetGame();
+  }
+}
+
+// 移动挡板
+function movePaddle(){
+  paddle.x += paddle.dx;
+  if(paddle.x < 0) paddle.x = 0;
+  if(paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
+}
+
+// 重置游戏
+function resetGame(){
+  score = 0;
+  scoreEl.textContent = score;
+  ball.x = canvas.width / 2;
+  ball.y = canvas.height - 50;
+  ball.dx = 4;
+  ball.dy = -4;
+  paddle.x = canvas.width / 2 - 50;
+  
+  for(let row = 0; row < brickRows; row++){
+    for(let col = 0; col < brickCols; col++){
+      bricks[row][col].alive = true;
+    }
+  }
+}
+
+// 游戏循环
+function gameLoop(){
+  if(!gameRunning) return;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  drawBricks();
+  drawBall();
+  drawPaddle();
+  drawParticles();
+  collisionDetection();
+  moveBall();
+  movePaddle();
+  
+  requestAnimationFrame(gameLoop);
+}
+
+// 键盘控制
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'ArrowRight') paddle.dx = paddle.speed;
+  if(e.key === 'ArrowLeft') paddle.dx = -paddle.speed;
+  if(e.key === ' ' && !gameRunning){
+    gameRunning = true;
+    gameLoop();
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  if(e.key === 'ArrowRight' || e.key === 'ArrowLeft') paddle.dx = 0;
+});
+
+// 触摸控制
+let touchX = 0;
+canvas.addEventListener('touchstart', (e) => {
+  touchX = e.touches[0].clientX;
+  if(!gameRunning){
+    gameRunning = true;
+    gameLoop();
+  }
+});
+
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  const newTouchX = e.touches[0].clientX;
+  const diff = newTouchX - touchX;
+  paddle.x += diff;
+  touchX = newTouchX;
+});
+
+// 初始绘制
+drawBricks();
+drawBall();
+drawPaddle();
+</script>
+</body>
+</html>
