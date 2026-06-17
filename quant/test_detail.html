@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>详细测试</title>
+<style>
+body { font-family: -apple-system, sans-serif; padding: 20px; font-size: 14px; }
+.card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 10px 0; }
+.error { color: red; }
+.success { color: green; }
+</style>
+</head>
+<body>
+<h1>Alpha191页面调试</h1>
+<div id="log"></div>
+
+<script>
+(function(){
+  const log = document.getElementById('log');
+  function addLog(msg, type) {
+    log.innerHTML += '<div class="' + type + '">' + msg + '</div>';
+  }
+  
+  addLog('1. 开始执行JS...', 'success');
+  
+  let recData = null, btData = null;
+  
+  addLog('2. 准备fetch推荐数据...', 'success');
+  
+  fetch('data/alpha191_recommendations.json?t=' + Date.now())
+    .then(r => {
+      addLog('3. 收到响应: HTTP ' + r.status, r.ok ? 'success' : 'error');
+      return r.json();
+    })
+    .then(d => {
+      addLog('4. JSON解析成功', 'success');
+      recData = d;
+      addLog('5. recData已设置, top_picks: ' + d.top_picks.length, 'success');
+      
+      // 测试renderWeights
+      try {
+        const weights = d.weights;
+        const names = d.weight_names;
+        const maxW = Math.max(...Object.values(weights));
+        addLog('6. renderWeights执行成功, maxW=' + maxW, 'success');
+      } catch(e) {
+        addLog('6. renderWeights错误: ' + e.message, 'error');
+      }
+      
+      // 测试renderRecommend
+      try {
+        const stocks = d.top_picks;
+        const s = stocks[0];
+        const chgClass = s.change >= 0 ? 'up' : 'down';
+        addLog('7. renderRecommend开始, 处理stock[0]: ' + s.name, 'success');
+        
+        // 测试factors
+        if(s.factors){
+          const maxF = Math.max(...Object.values(s.factors));
+          addLog('8. factors测试通过, maxF=' + maxF, 'success');
+        }
+        
+        // 测试indicators
+        if(s.indicators){
+          addLog('9. indicators测试通过', 'success');
+        }
+        
+        addLog('10. renderRecommend所有测试通过!', 'success');
+      } catch(e) {
+        addLog('ERROR in renderRecommend: ' + e.message, 'error');
+      }
+    })
+    .catch(e => {
+      addLog('ERROR: ' + e.message, 'error');
+    });
+})();
+</script>
+</body>
+</html>
