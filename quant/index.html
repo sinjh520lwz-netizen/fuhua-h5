@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>量化分析</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#21262d;--text:#e6edf3;--text2:#8b949e;--red:#f85149;--green:#3fb950;--blue:#58a6ff;--orange:#d29922;--purple:#bc8cff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+.header{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.search-box{flex:1;display:flex;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0 10px;height:36px}
+.search-box input{flex:1;background:none;border:none;color:var(--text);font-size:14px;outline:none}
+.search-box input::placeholder{color:var(--text2)}
+.search-box .icon{color:var(--text2);font-size:16px}
+.tabs{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;border-radius:20px;font-size:13px;white-space:nowrap;background:var(--card);border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:.2s}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* 实时行情卡 */
+.quote-card{margin:0 16px 12px;padding:16px;background:var(--card);border-radius:12px;border:1px solid var(--border)}
+.quote-top{display:flex;justify-content:space-between;align-items:flex-start}
+.stock-name{font-size:18px;font-weight:700}
+.stock-code{font-size:12px;color:var(--text2);margin-top:2px}
+.stock-price{font-size:32px;font-weight:800;line-height:1}
+.stock-change{font-size:14px;margin-top:4px}
+.quote-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.quote-item{text-align:center}
+.quote-item .label{font-size:11px;color:var(--text2)}
+.quote-item .val{font-size:14px;font-weight:600;margin-top:2px}
+
+/* 图表区 */
+.chart-section{margin:0 16px 12px;background:var(--card);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.chart-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 8px}
+.chart-title{font-size:14px;font-weight:600}
+.chart-period{display:flex;gap:4px}
+.period-btn{padding:3px 8px;border-radius:4px;font-size:11px;background:transparent;border:1px solid var(--border);color:var(--text2);cursor:pointer}
+.period-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chart-wrap{position:relative;width:100%;height:280px}
+.chart-wrap canvas{display:block;width:100%;height:100%}
+.chart-crosshair{position:absolute;pointer-events:none;display:none;z-index:10}
+.crosshair-label{position:absolute;background:var(--border);color:var(--text);font-size:10px;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.chart-tooltip{position:absolute;top:8px;left:8px;background:rgba(22,27,34,.92);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;line-height:1.6;display:none;z-index:20;pointer-events:none;backdrop-filter:blur(4px)}
+
+/* 副图 */
+.sub-chart{border-top:1px solid var(--border)}
+.sub-chart .chart-wrap{height:100px}
+
+/* 信号面板 */
+.signals{margin:0 16px 12px;background:var(--card);border-radius:12px;border:1px solid var(--border)}
+.signals-title{padding:12px 16px 8px;font-size:14px;font-weight:600}
+.signal-list{padding:0 16px 12px}
+.signal-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.signal-item:last-child{border:none}
+.signal-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.signal-dot.buy{background:var(--green);box-shadow:0 0 8px rgba(63,185,80,.4)}
+.signal-dot.sell{background:var(--red);box-shadow:0 0 8px rgba(248,81,73,.4)}
+.signal-dot.neutral{background:var(--text2)}
+.signal-info{flex:1}
+.signal-type{font-size:13px;font-weight:600}
+.signal-desc{font-size:11px;color:var(--text2);margin-top:2px}
+.signal-time{font-size:11px;color:var(--text2);flex-shrink:0}
+
+/* 资金流向 */
+.fund-flow{margin:0 16px 12px;background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px}
+.fund-title{font-size:14px;font-weight:600;margin-bottom:12px}
+.fund-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.fund-bar .in{background:var(--red)}
+.fund-bar .out{background:var(--green)}
+.fund-labels{display:flex;justify-content:space-between;font-size:12px}
+.fund-labels .pos{color:var(--red)}
+.fund-labels .neg{color:var(--green)}
+
+/* 指标卡 */
+.indicators{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 16px 12px}
+.ind-card{background:var(--card);border-radius:10px;border:1px solid var(--border);padding:12px;text-align:center}
+.ind-label{font-size:11px;color:var(--text2)}
+.ind-val{font-size:20px;font-weight:700;margin-top:4px}
+.ind-status{font-size:11px;margin-top:4px;padding:2px 8px;border-radius:10px;display:inline-block}
+.ind-status.buy{background:rgba(63,185,80,.15);color:var(--green)}
+.ind-status.sell{background:rgba(248,81,73,.15);color:var(--red)}
+.ind-status.neutral{background:rgba(139,148,158,.15);color:var(--text2)}
+
+/* 底部间距 */
+.spacer{height:80px}
+
+/* 加载态 */
+.loading{text-align:center;padding:40px;color:var(--text2)}
+.loading .spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.up{color:var(--red)}.down{color:var(--green)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="search-box">
+    <span class="icon">🔍</span>
+    <input id="searchInput" type="text" placeholder="输入股票代码或名称" autocomplete="off">
+  </div>
+</div>
+
+<div class="tabs" id="watchlist">
+  <div class="tab active" data-code="601138">工业富联</div>
+  <div class="tab" data-code="600519">贵州茅台</div>
+  <div class="tab" data-code="000001">平安银行</div>
+  <div class="tab" data-code="300750">宁德时代</div>
+</div>
+
+<div id="content">
+  <div class="loading"><div class="spinner"></div><div style="margin-top:10px">加载中...</div></div>
+</div>
+
+<div class="spacer"></div>
+
+<script>
+// ============ 数据层 ============
+const API = {
+  // 腾讯实时行情
+  quote(code) {
+    const prefix = code.startsWith('6') ? 'sh' : code.startsWith('8') ? 'bj' : 'sz';
+    return fetch(`https://qt.gtimg.cn/q=${prefix}${code}`)
+      .then(r => r.arrayBuffer())
+      .then(buf => {
+        const text = new TextDecoder('gbk').decode(buf);
+        const vals = text.split('"')[1]?.split('~');
+        if (!vals || vals.length < 50) return null;
+        return {
+          name: vals[1], price: +vals[3], prevClose: +vals[4], open: +vals[5],
+          high: +vals[33], low: +vals[34], change: +vals[32],
+          volume: +vals[36], amount: +vals[37], turnover: +vals[38],
+          pe: +vals[39], mcap: +vals[45]
+        };
+      });
+  },
+
+  // 腾讯日K线
+  klines(code, days = 120) {
+    const prefix = code.startsWith('6') ? 'sh' : 'sz';
+    return fetch(`https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?_var=kline&param=${prefix}${code},day,,,${days},qfq`)
+      .then(r => r.text())
+      .then(text => {
+        // JSONP格式: kline={...}  需要提取JSON部分
+        const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonStr);
+        const raw = data?.data?.[`${prefix}${code}`];
+        const kdata = raw?.qfqday || raw?.day || [];
+        return kdata.map(k => ({
+          date: k[0], open: +k[1], close: +k[2], high: +k[3], low: +k[4], volume: +k[5]
+        }));
+      });
+  }
+};
+
+// ============ 技术指标 ============
+const Indicators = {
+  ma(data, n) {
+    const result = [];
+    for (let i = 0; i < data.length; i++) {
+      if (i < n - 1) { result.push(null); continue; }
+      let sum = 0;
+      for (let j = i - n + 1; j <= i; j++) sum += data[j].close;
+      result.push(sum / n);
+    }
+    return result;
+  },
+
+  ema(data, n) {
+    const result = [];
+    const k = 2 / (n + 1);
+    for (let i = 0; i < data.length; i++) {
+      if (i === 0) { result.push(data[0].close); continue; }
+      result.push(data[i].close * k + result[i - 1] * (1 - k));
+    }
+    return result;
+  },
+
+  rsi(data, n = 14) {
+    const result = [];
+    for (let i = 0; i < data.length; i++) {
+      if (i < n) { result.push(null); continue; }
+      let gains = 0, losses = 0;
+      for (let j = i - n + 1; j <= i; j++) {
+        const change = data[j].close - data[j - 1].close;
+        if (change > 0) gains += change; else losses -= change;
+      }
+      const avgGain = gains / n;
+      const avgLoss = losses / n;
+      result.push(avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss));
+    }
+    return result;
+  },
+
+  macd(data) {
+    const ema12 = this.ema(data, 12);
+    const ema26 = this.ema(data, 26);
+    const dif = ema12.map((v, i) => v - ema26[i]);
+    const dea = [];
+    const k = 2 / 10;
+    for (let i = 0; i < dif.length; i++) {
+      if (i === 0) { dea.push(dif[0]); continue; }
+      dea.push(dif[i] * k + dea[i - 1] * (1 - k));
+    }
+    const macd = dif.map((v, i) => (v - dea[i]) * 2);
+    return { dif, dea, macd };
+  },
+
+  boll(data, n = 20) {
+    const mid = [], upper = [], lower = [];
+    for (let i = 0; i < data.length; i++) {
+      if (i < n - 1) { mid.push(null); upper.push(null); lower.push(null); continue; }
+      let sum = 0;
+      for (let j = i - n + 1; j <= i; j++) sum += data[j].close;
+      const m = sum / n;
+      let sq = 0;
+      for (let j = i - n + 1; j <= i; j++) sq += (data[j].close - m) ** 2;
+      const sd = Math.sqrt(sq / n);
+      mid.push(m); upper.push(m + 2 * sd); lower.push(m - 2 * sd);
+    }
+    return { mid, upper, lower };
+  },
+
+  volMa(data, n) {
+    const result = [];
+    for (let i = 0; i < data.length; i++) {
+      if (i < n - 1) { result.push(null); continue; }
+      let sum = 0;
+      for (let j = i - n + 1; j <= i; j++) sum += data[j].volume;
+      result.push(sum / n);
+    }
+    return result;
+  }
+};
+
+// ============ 信号引擎 ============
+const Signals = {
+  analyze(data) {
+    const signals = [];
+    const len = data.length;
+    if (len < 30) return signals;
+
+    const ma5 = Indicators.ma(data, 5);
+    const ma10 = Indicators.ma(data, 10);
+    const ma20 = Indicators.ma(data, 20);
+    const rsi = Indicators.rsi(data, 14);
+    const { dif, dea, macd } = Indicators.macd(data);
+
+    const i = len - 1;
+    const p = data[i];
+
+    // MA金叉/死叉
+    if (ma5[i] && ma10[i] && ma5[i - 1] && ma10[i - 1]) {
+      if (ma5[i] > ma10[i] && ma5[i - 1] <= ma10[i - 1])
+        signals.push({ type: 'buy', name: 'MA5/10金叉', desc: '短期均线上穿中期均线，看涨', date: p.date });
+      if (ma5[i] < ma10[i] && ma5[i - 1] >= ma10[i - 1])
+        signals.push({ type: 'sell', name: 'MA5/10死叉', desc: '短期均线下穿中期均线，看跌', date: p.date });
+    }
+
+    // RSI
+    if (rsi[i]) {
+      if (rsi[i] > 80) signals.push({ type: 'sell', name: 'RSI超买', desc: `RSI=${rsi[i].toFixed(1)}，短期可能回调`, date: p.date });
+      else if (rsi[i] > 70) signals.push({ type: 'neutral', name: 'RSI偏高', desc: `RSI=${rsi[i].toFixed(1)}，注意风险`, date: p.date });
+      else if (rsi[i] < 20) signals.push({ type: 'buy', name: 'RSI超卖', desc: `RSI=${rsi[i].toFixed(1)}，可能反弹`, date: p.date });
+      else if (rsi[i] < 30) signals.push({ type: 'buy', name: 'RSI偏低', desc: `RSI=${rsi[i].toFixed(1)}，关注买入`, date: p.date });
+    }
+
+    // MACD金叉/死叉
+    if (dif[i] && dea[i] && dif[i - 1] && dea[i - 1]) {
+      if (dif[i] > dea[i] && dif[i - 1] <= dea[i - 1])
+        signals.push({ type: 'buy', name: 'MACD金叉', desc: 'DIF上穿DEA，中期看涨', date: p.date });
+      if (dif[i] < dea[i] && dif[i - 1] >= dea[i - 1])
+        signals.push({ type: 'sell', name: 'MACD死叉', desc: 'DIF下穿DEA，中期看跌', date: p.date });
+    }
+
+    // 放量突破
+    const avgVol = data.slice(i - 5, i).reduce((s, d) => s + d.volume, 0) / 5;
+    if (p.volume > avgVol * 2 && p.close > p.open)
+      signals.push({ type: 'buy', name: '放量阳线', desc: `成交量是5日均量的${(p.volume / avgVol).toFixed(1)}倍`, date: p.date });
+
+    // 均线多头排列
+    if (ma5[i] && ma10[i] && ma20[i]) {
+      if (ma5[i] > ma10[i] && ma10[i] > ma20[i])
+        signals.push({ type: 'buy', name: '均线多头排列', desc: 'MA5>MA10>MA20，趋势向上', date: p.date });
+      if (ma5[i] < ma10[i] && ma10[i] < ma20[i])
+        signals.push({ type: 'sell', name: '均线空头排列', desc: 'MA5<MA10<MA20，趋势向下', date: p.date });
+    }
+
+    // 连续涨/跌
+    let streak = 0;
+    for (let j = i; j >= Math.max(0, i - 4); j--) {
+      if (data[j].close >= data[j].open) streak++; else break;
+    }
+    if (streak >= 4) signals.push({ type: 'sell', name: '连阳预警', desc: `连续${streak}根阳线，注意回调风险`, date: p.date });
+
+    streak = 0;
+    for (let j = i; j >= Math.max(0, i - 4); j--) {
+      if (data[j].close < data[j].open) streak++; else break;
+    }
+    if (streak >= 4) signals.push({ type: 'buy', name: '连阴反弹', desc: `连续${streak}根阴线，可能超跌反弹`, date: p.date });
+
+    if (signals.length === 0)
+      signals.push({ type: 'neutral', name: '无明显信号', desc: '当前趋势平稳，建议观望', date: p.date });
+
+    return signals;
+  },
+
+  // 综合评分
+  score(data) {
+    const signals = this.analyze(data);
+    let s = 50;
+    signals.forEach(sig => {
+      if (sig.type === 'buy') s += 15;
+      if (sig.type === 'sell') s -= 15;
+    });
+    return Math.max(0, Math.min(100, s));
+  }
+};
+
+// ============ 渲染层 ============
+const ChartRenderer = {
+  colors: {
+    up: '#f85149', down: '#3fb950', bg: '#161b22', grid: '#21262d',
+    text: '#8b949e', ma5: '#58a6ff', ma10: '#d29922', ma20: '#bc8cff', ma60: '#f778ba',
+    dif: '#58a6ff', dea: '#d29922', macdPos: '#f85149', macdNeg: '#3fb950'
+  },
+
+  // 通用Canvas绑定
+  bindCanvas(container, height) {
+    const canvas = document.createElement('canvas');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = container.clientWidth * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = container.clientWidth + 'px';
+    canvas.style.height = height + 'px';
+    container.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return { canvas, ctx, w: container.clientWidth, h: height };
+  },
+
+  // K线图
+  drawKline(container, data, maData) {
+    container.innerHTML = '';
+    const { canvas, ctx, w, h } = this.bindCanvas(container, 280);
+    const pad = { top: 20, right: 50, bottom: 24, left: 8 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+
+    const visible = data.slice(-60);
+    const allPrices = visible.flatMap(d => [d.high, d.low]);
+    const priceMin = Math.min(...allPrices);
+    const priceMax = Math.max(...allPrices);
+    const priceRange = priceMax - priceMin || 1;
+    const candleW = Math.max(2, (cw / visible.length) * 0.7);
+    const gap = cw / visible.length;
+
+    const yOf = (price) => pad.top + (1 - (price - priceMin) / priceRange) * ch;
+    const xOf = (i) => pad.left + i * gap + gap / 2;
+
+    // 网格
+    ctx.strokeStyle = this.colors.grid;
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i <= 4; i++) {
+      const y = pad.top + (ch / 4) * i;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+      ctx.fillStyle = this.colors.text;
+      ctx.font = '10px system-ui';
+      ctx.textAlign = 'left';
+      const price = priceMax - (priceRange / 4) * i;
+      ctx.fillText(price.toFixed(2), w - pad.right + 4, y + 4);
+    }
+
+    // K线
+    visible.forEach((d, i) => {
+      const x = xOf(i);
+      const isUp = d.close >= d.open;
+      ctx.fillStyle = ctx.strokeStyle = isUp ? this.colors.up : this.colors.down;
+
+      // 影线
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x, yOf(d.high));
+      ctx.lineTo(x, yOf(d.low));
+      ctx.stroke();
+
+      // 实体
+      const bodyTop = yOf(Math.max(d.open, d.close));
+      const bodyBot = yOf(Math.min(d.open, d.close));
+      const bodyH = Math.max(1, bodyBot - bodyTop);
+      if (isUp) {
+        ctx.strokeRect(x - candleW / 2, bodyTop, candleW, bodyH);
+      } else {
+        ctx.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
+      }
+    });
+
+    // MA线
+    const drawMA = (maArr, color, label, idx) => {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      let started = false;
+      visible.forEach((_, i) => {
+        const dataIdx = data.length - visible.length + i;
+        const val = maArr[dataIdx];
+        if (val === null || val === undefined) return;
+        const x = xOf(i);
+        const y = yOf(val);
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      // 标签
+      ctx.fillStyle = color;
+      ctx.font = '10px system-ui';
+      ctx.fillText(`${label}:${(maArr[data.length - 1])?.toFixed(2) || '--'}`, pad.left + 4 + idx * 80, pad.top - 6);
+    };
+
+    if (maData.ma5) drawMA(maData.ma5, this.colors.ma5, 'MA5', 0);
+    if (maData.ma10) drawMA(maData.ma10, this.colors.ma10, 'MA10', 1);
+    if (maData.ma20) drawMA(maData.ma20, this.colors.ma20, 'MA20', 2);
+
+    // 触摸提示
+    this.addTouchHandler(canvas, visible, { pad, gap, yOf, xOf, priceMin, priceRange, candleW, w, h }, data);
+  },
+
+  addTouchHandler(canvas, visible, layout, fullData) {
+    const tooltip = canvas.parentElement.querySelector('.chart-tooltip');
+    if (!tooltip) return;
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      const idx = Math.floor((x - layout.pad.left) / layout.gap);
+      if (idx < 0 || idx >= visible.length) { tooltip.style.display = 'none'; return; }
+
+      const d = visible[idx];
+      const isUp = d.close >= d.open;
+      const color = isUp ? 'up' : 'down';
+      tooltip.innerHTML = `
+        <div>${d.date}</div>
+        <div>开 <span class="${color}">${d.open.toFixed(2)}</span></div>
+        <div>收 <span class="${color}">${d.close.toFixed(2)}</span></div>
+        <div>高 <span class="up">${d.high.toFixed(2)}</span></div>
+        <div>低 <span class="down">${d.low.toFixed(2)}</span></div>
+        <div>量 ${(d.volume / 10000).toFixed(0)}万手</div>
+      `;
+      tooltip.style.display = 'block';
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => {
+      setTimeout(() => { tooltip.style.display = 'none'; }, 1500);
+    });
+  },
+
+  // RSI图
+  drawRSI(container, data) {
+    container.innerHTML = '';
+    const { ctx, w, h } = this.bindCanvas(container, 100);
+    const pad = { top: 8, right: 50, bottom: 4, left: 8 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+
+    const rsi = Indicators.rsi(data, 14);
+    const visible = rsi.slice(-60);
+    const gap = cw / visible.length;
+
+    // 网格线 [30, 50, 70]
+    ctx.strokeStyle = this.colors.grid;
+    ctx.lineWidth = 0.5;
+    [30, 50, 70].forEach(v => {
+      const y = pad.top + (1 - v / 100) * ch;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+      ctx.fillStyle = this.colors.text;
+      ctx.font = '9px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText(v, w - pad.right + 4, y + 3);
+    });
+
+    // RSI线
+    ctx.strokeStyle = '#bc8cff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    let started = false;
+    visible.forEach((v, i) => {
+      if (v === null) return;
+      const x = pad.left + i * gap + gap / 2;
+      const y = pad.top + (1 - v / 100) * ch;
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // 超买超卖区
+    ctx.fillStyle = 'rgba(248,81,73,0.05)';
+    ctx.fillRect(pad.left, pad.top, cw, (1 - 0.7) * ch);
+    ctx.fillStyle = 'rgba(63,185,80,0.05)';
+    ctx.fillRect(pad.left, pad.top + (1 - 0.3) * ch, cw, 0.3 * ch);
+
+    // 标签
+    ctx.fillStyle = '#bc8cff';
+    ctx.font = '10px system-ui';
+    ctx.fillText('RSI(14)', pad.left + 4, pad.top - 1);
+  },
+
+  // 成交量图
+  drawVolume(container, data) {
+    container.innerHTML = '';
+    const { ctx, w, h } = this.bindCanvas(container, 100);
+    const pad = { top: 8, right: 50, bottom: 4, left: 8 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+
+    const visible = data.slice(-60);
+    const maxVol = Math.max(...visible.map(d => d.volume));
+    const gap = cw / visible.length;
+    const barW = Math.max(2, gap * 0.6);
+
+    visible.forEach((d, i) => {
+      const x = pad.left + i * gap + gap / 2;
+      const barH = (d.volume / maxVol) * ch;
+      const isUp = d.close >= d.open;
+      ctx.fillStyle = isUp ? 'rgba(248,81,73,0.6)' : 'rgba(63,185,80,0.6)';
+      ctx.fillRect(x - barW / 2, pad.top + ch - barH, barW, barH);
+    });
+
+    // MA5/10
+    const volMa5 = Indicators.volMa(data, 5);
+    const volMa10 = Indicators.volMa(data, 10);
+    [volMa5, volMa10].forEach((arr, idx) => {
+      ctx.strokeStyle = idx === 0 ? this.colors.ma5 : this.colors.ma10;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      let started = false;
+      visible.forEach((_, i) => {
+        const di = data.length - visible.length + i;
+        const val = arr[di];
+        if (!val) return;
+        const x = pad.left + i * gap + gap / 2;
+        const y = pad.top + ch - (val / maxVol) * ch;
+        if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    });
+
+    ctx.fillStyle = this.colors.text;
+    ctx.font = '10px system-ui';
+    ctx.fillText('VOL', pad.left + 4, pad.top - 1);
+  }
+};
+
+// ============ 页面渲染 ============
+let currentCode = '601138';
+
+async function loadStock(code) {
+  currentCode = code;
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="loading"><div class="spinner"></div><div style="margin-top:10px">加载中...</div></div>';
+
+  try {
+    const [quote, klines] = await Promise.all([
+      API.quote(code),
+      API.klines(code, 120)
+    ]);
+
+    if (!quote || !klines || klines.length === 0) {
+      content.innerHTML = '<div class="loading">数据加载失败，请检查股票代码</div>';
+      return;
+    }
+
+    const ma5 = Indicators.ma(klines, 5);
+    const ma10 = Indicators.ma(klines, 10);
+    const ma20 = Indicators.ma(klines, 20);
+    const rsi = Indicators.rsi(klines, 14);
+    const { dif, dea } = Indicators.macd(klines);
+    const signals = Signals.analyze(klines);
+    const score = Signals.score(klines);
+
+    const lastRsi = rsi[rsi.length - 1];
+    const lastDif = dif[dif.length - 1];
+    const lastDea = dea[dea.length - 1];
+    const isUp = quote.change >= 0;
+
+    content.innerHTML = `
+      <!-- 行情卡 -->
+      <div class="quote-card">
+        <div class="quote-top">
+          <div>
+            <div class="stock-name">${quote.name}</div>
+            <div class="stock-code">${code}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="stock-price ${isUp ? 'up' : 'down'}">${quote.price.toFixed(2)}</div>
+            <div class="stock-change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${quote.change.toFixed(2)}%</div>
+          </div>
+        </div>
+        <div class="quote-grid">
+          <div class="quote-item"><div class="label">今开</div><div class="val">${quote.open.toFixed(2)}</div></div>
+          <div class="quote-item"><div class="label">最高</div><div class="val up">${quote.high.toFixed(2)}</div></div>
+          <div class="quote-item"><div class="label">最低</div><div class="val down">${quote.low.toFixed(2)}</div></div>
+          <div class="quote-item"><div class="label">成交额</div><div class="val">${(quote.amount / 10000).toFixed(1)}亿</div></div>
+          <div class="quote-item"><div class="label">换手率</div><div class="val">${quote.turnover}%</div></div>
+          <div class="quote-item"><div class="label">PE</div><div class="val">${quote.pe.toFixed(1)}</div></div>
+        </div>
+      </div>
+
+      <!-- 综合评分 -->
+      <div class="indicators">
+        <div class="ind-card">
+          <div class="ind-label">量化评分</div>
+          <div class="ind-val" style="color:${score >= 60 ? 'var(--green)' : score <= 40 ? 'var(--red)' : 'var(--orange)'}">${score}</div>
+          <div class="ind-status ${score >= 60 ? 'buy' : score <= 40 ? 'sell' : 'neutral'}">${score >= 70 ? '看多' : score >= 60 ? '偏多' : score <= 30 ? '看空' : score <= 40 ? '偏空' : '中性'}</div>
+        </div>
+        <div class="ind-card">
+          <div class="ind-label">RSI(14)</div>
+          <div class="ind-val" style="color:${lastRsi > 70 ? 'var(--red)' : lastRsi < 30 ? 'var(--green)' : 'var(--text)'}">${lastRsi?.toFixed(1) || '--'}</div>
+          <div class="ind-status ${lastRsi > 70 ? 'sell' : lastRsi < 30 ? 'buy' : 'neutral'}">${lastRsi > 70 ? '超买' : lastRsi > 60 ? '偏高' : lastRsi < 30 ? '超卖' : lastRsi < 40 ? '偏低' : '正常'}</div>
+        </div>
+        <div class="ind-card">
+          <div class="ind-label">MACD</div>
+          <div class="ind-val" style="color:${lastDif > lastDea ? 'var(--red)' : 'var(--green)'}">${lastDif > lastDea ? '多' : '空'}</div>
+          <div class="ind-status ${lastDif > lastDea ? 'buy' : 'sell'}">DIF${lastDif > lastDea ? '>' : '<'}DEA</div>
+        </div>
+        <div class="ind-card">
+          <div class="ind-label">均线</div>
+          <div class="ind-val" style="color:${ma5[ma5.length-1] > ma20[ma20.length-1] ? 'var(--red)' : 'var(--green)'}">${ma5[ma5.length-1] > ma10[ma10.length-1] && ma10[ma10.length-1] > ma20[ma20.length-1] ? '多排' : '非多排'}</div>
+          <div class="ind-status ${ma5[ma5.length-1] > ma20[ma20.length-1] ? 'buy' : 'sell'}">MA5/10/20</div>
+        </div>
+      </div>
+
+      <!-- K线图 -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <div class="chart-title">K线 · MA均线</div>
+        </div>
+        <div class="chart-wrap" id="klineChart">
+          <div class="chart-tooltip"></div>
+        </div>
+        <div class="sub-chart chart-wrap" id="rsiChart"></div>
+        <div class="sub-chart chart-wrap" id="volumeChart"></div>
+      </div>
+
+      <!-- 信号 -->
+      <div class="signals">
+        <div class="signals-title">📊 量化信号</div>
+        <div class="signal-list">
+          ${signals.map(s => `
+            <div class="signal-item">
+              <div class="signal-dot ${s.type}"></div>
+              <div class="signal-info">
+                <div class="signal-type">${s.type === 'buy' ? '🟢 买入' : s.type === 'sell' ? '🔴 卖出' : '⚪ 中性'} · ${s.name}</div>
+                <div class="signal-desc">${s.desc}</div>
+              </div>
+              <div class="signal-time">${s.date?.slice(5) || ''}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    // 渲染图表（等DOM就绪）
+    requestAnimationFrame(() => {
+      ChartRenderer.drawKline(document.getElementById('klineChart'), klines, { ma5, ma10, ma20 });
+      ChartRenderer.drawRSI(document.getElementById('rsiChart'), klines);
+      ChartRenderer.drawVolume(document.getElementById('volumeChart'), klines);
+    });
+
+  } catch (err) {
+    console.error(err);
+    content.innerHTML = `<div class="loading">加载出错: ${err.message}</div>`;
+  }
+}
+
+// ============ 事件绑定 ============
+document.getElementById('watchlist').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  loadStock(tab.dataset.code);
+});
+
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const code = e.target.value.trim();
+    if (/^\d{6}$/.test(code)) {
+      // 加入tab
+      const tabs = document.getElementById('watchlist');
+      if (!tabs.querySelector(`[data-code="${code}"]`)) {
+        const tab = document.createElement('div');
+        tab.className = 'tab';
+        tab.dataset.code = code;
+        tab.textContent = code;
+        tabs.appendChild(tab);
+      }
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tabs.querySelector(`[data-code="${code}"]`).classList.add('active');
+      loadStock(code);
+      e.target.value = '';
+    }
+  }
+});
+
+// 窗口resize重绘
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => loadStock(currentCode), 300);
+});
+
+// 初始加载
+loadStock('601138');
+</script>
+</body>
+</html>
