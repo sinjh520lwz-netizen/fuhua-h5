@@ -1,10 +1,18 @@
-// API配置 - 修改这里即可切换后端服务器
+// API配置 - 静态数据模式（GitHub Pages）
 var API_CONFIG = {
-    // 后端API地址，末尾不要加斜杠
-    baseUrl: 'http://8.138.21.141',
+    baseUrl: '',
     
-    // 获取完整API地址
+    // 静态数据映射
+    _staticMap: {
+        '/api/ships': '/data/ships.json',
+        '/api/announcements': '/data/announcements.json'
+    },
+    
     getUrl: function(path) {
+        // 优先使用静态映射
+        if (this._staticMap[path]) {
+            return this._staticMap[path];
+        }
         if (this.baseUrl) {
             return this.baseUrl + path;
         }
