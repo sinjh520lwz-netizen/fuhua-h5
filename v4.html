@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>富华捕虾</title>
+<link rel="stylesheet" href="/h5/lib/leaflet.css">
+<style>
+:root {
+  --primary: #3B82F6;
+  --primary-light: #DBEAFE;
+  --primary-dark: #1D4ED8;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --success: #10B981;
+  --success-light: #D1FAE5;
+  --warning: #F59E0B;
+  --warning-light: #FEF3C7;
+  --danger: #EF4444;
+  --danger-light: #FEE2E2;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-900);
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--gray-50);
+  overflow: hidden;
+}
+
+/* ═══ Splash ═══ */
+.splash {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.8s ease;
+}
+.splash.hide { opacity: 0; pointer-events: none; }
+.splash-logo {
+  width: 80px; height: 80px;
+  background: rgba(59,130,246,0.3);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; color: white; font-weight: 700;
+  backdrop-filter: blur(10px);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+.splash-title { margin-top: 16px; font-size: 24px; font-weight: 600; color: white; letter-spacing: 2px; }
+.splash-sub { margin-top: 8px; font-size: 14px; color: rgba(255,255,255,0.7); }
+
+/* ═══ Header ═══ */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  padding: 12px 16px;
+  padding-top: calc(12px + var(--safe-top));
+  background: rgba(249,250,251,0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.header-content { display: flex; align-items: center; justify-content: space-between; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 600; font-size: 16px;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+}
+.header-info h1 { font-size: 17px; font-weight: 600; line-height: 1.2; }
+.header-info p { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.header-badge {
+  padding: 4px 12px; background: var(--warning-light); color: var(--warning);
+  font-size: 12px; font-weight: 600; border-radius: 20px;
+}
+
+/* ═══ Main ═══ */
+.main { flex: 1; overflow: hidden; position: relative; }
+.pages-container { display: flex; height: 100%; will-change: transform; }
+.page { flex: 0 0 100%; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.page::-webkit-scrollbar { display: none; }
+.page-content { padding: 16px; padding-bottom: calc(40px + var(--safe-bottom)); }
+
+/* ═══ Weather Card iOS18 Style ═══ */
+.weather-card-container {
+  margin-bottom: 20px;
+}
+
+.weather-card-ios {
+  position: relative;
+  height: 200px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.weather-card-ios::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 1;
+}
+
+.weather-canvas-ios {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.weather-content-ios {
+  position: relative;
+  z-index: 10;
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: white;
+}
+
+.weather-header-ios {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.weather-temp-ios {
+  font-size: 56px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -2px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.weather-temp-ios .unit {
+  font-size: 28px;
+  font-weight: 300;
+  vertical-align: top;
+  margin-left: 2px;
+}
+
+.weather-icon-ios {
+  font-size: 48px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+.weather-desc-ios {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-top: 4px;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.weather-grid-ios {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+.weather-item-ios {
+  text-align: center;
+}
+
+.weather-item-value-ios {
+  font-size: 18px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.weather-item-label-ios {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+/* ═══ Stats ═══ */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  background: white; border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.stat-card:active { transform: scale(0.97); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.stat-icon {
+  width: 36px; height: 36px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 12px;
+}
+.stat-icon.blue { background: var(--primary-light); }
+.stat-icon.green { background: var(--success-light); }
+.stat-icon.orange { background: var(--warning-light); }
+.stat-icon.red { background: var(--danger-light); }
+.stat-value { font-size: 28px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat-label { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+
+/* ═══ Weather Card with Canvas ═══ */
+.weather-card {
+  position: relative; border-radius: 20px; margin-bottom: 20px;
+  overflow: hidden; min-height: 180px;
+  box-shadow: 0 8px 32px rgba(59,130,246,0.2);
+}
+.weather-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.weather-content {
+  position: relative; z-index: 10;
+  padding: 24px; color: white;
+}
+.weather-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.weather-temp { font-size: 56px; font-weight: 200; line-height: 1; letter-spacing: -2px; }
+.weather-temp .unit { font-size: 24px; font-weight: 300; vertical-align: top; margin-left: 4px; }
+.weather-icon { font-size: 48px; line-height: 1; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
+.weather-desc { font-size: 16px; opacity: 0.9; margin-top: 4px; font-weight: 500; }
+.weather-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.2);
+}
+.weather-item { text-align: center; }
+.weather-item-value { font-size: 18px; font-weight: 600; }
+.weather-item-label { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+
+/* ═══ Section ═══ */
+.section-title {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title h2 { font-size: 18px; font-weight: 600; }
+.section-title .more { font-size: 14px; color: var(--primary); font-weight: 500; cursor: pointer; }
+
+/* ═══ Notice Cards ═══ */
+.notice-list { display: flex; flex-direction: column; gap: 12px; }
+.notice-card {
+  background: white; border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+}
+.notice-card:active { transform: scale(0.98); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.notice-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.notice-tag {
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.notice-tag.weather { background: var(--primary-light); color: var(--primary); }
+.notice-tag.holiday { background: var(--danger-light); color: var(--danger); }
+.notice-tag.urgent { background: var(--warning-light); color: var(--warning); }
+.notice-tag.info { background: var(--gray-100); color: var(--gray-500); }
+.notice-time { font-size: 12px; color: var(--gray-400); margin-left: auto; }
+.notice-title { font-size: 15px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; }
+.notice-preview {
+  font-size: 13px; color: var(--gray-500); line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* ═══ Ship List ═══ */
+.ship-list { display: flex; flex-direction: column; gap: 12px; }
+.ship-card {
+  background: white; border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+}
+.ship-card:active { transform: scale(0.98); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.ship-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.ship-name { font-size: 16px; font-weight: 600; }
+.ship-status {
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+}
+.ship-status.in-port { background: var(--gray-100); color: var(--gray-500); }
+.ship-status.at-sea { background: var(--success-light); color: var(--success); }
+.ship-status.nansha { background: var(--warning-light); color: var(--warning); }
+.ship-info { display: flex; gap: 16px; font-size: 13px; color: var(--gray-500); }
+
+/* ═══ Search ═══ */
+.search-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+.search-input {
+  flex: 1; height: 44px; padding: 0 16px;
+  background: white; border: 1.5px solid var(--gray-200); border-radius: 12px;
+  font-size: 15px; color: var(--gray-900); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-input::placeholder { color: var(--gray-400); }
+.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+/* ═══ Tab Bar ═══ */
+.tabbar {
+  position: sticky; bottom: 0; z-index: 100;
+  display: flex;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  padding: 8px 0;
+  padding-bottom: calc(8px + var(--safe-bottom));
+}
+.tab-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 4px 0; cursor: pointer; color: var(--gray-400);
+  transition: color 0.15s; user-select: none;
+}
+.tab-item.active { color: var(--primary); }
+.tab-icon { font-size: 24px; line-height: 1; transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+.tab-item.active .tab-icon { transform: scale(1.1); }
+.tab-label { font-size: 10px; font-weight: 600; margin-top: 2px; }
+
+/* ═══ Full Page Detail ═══ */
+.detail-page {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--gray-50);
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  max-width: 480px; margin: 0 auto;
+}
+.detail-page.show { transform: translateX(0); }
+.detail-header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  padding-top: calc(12px + var(--safe-top));
+  background: rgba(249,250,251,0.9);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.detail-back {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: white; border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: transform 0.15s;
+}
+.detail-back:active { transform: scale(0.9); }
+.detail-title { font-size: 17px; font-weight: 600; flex: 1; }
+.detail-content { padding: 16px; padding-bottom: calc(16px + var(--safe-bottom)); }
+
+/* ═══ Detail Fields ═══ */
+.detail-card {
+  background: white; border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  margin-bottom: 16px;
+}
+.detail-field {
+  display: flex; padding: 12px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+.detail-field:last-child { border-bottom: none; }
+.detail-field-label { width: 90px; font-size: 14px; color: var(--gray-400); flex-shrink: 0; }
+.detail-field-value { flex: 1; font-size: 14px; color: var(--gray-900); }
+.detail-field-value a { color: var(--primary); text-decoration: none; }
+
+/* ═══ Map ═══ */
+.map-container { position: relative; width: 100%; height: 100%; }
+#map { width: 100%; height: 100%; }
+.map-legend {
+  position: absolute; bottom: 16px; left: 16px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 500;
+}
+.legend-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; color: var(--gray-600); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+/* ═══ Loading & Empty ═══ */
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px 0; color: var(--gray-400);
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--gray-200); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px 0; color: var(--gray-400);
+}
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-text { font-size: 15px; margin-bottom: 16px; }
+.empty-btn {
+  padding: 12px 24px; background: var(--primary); color: white;
+  border: none; border-radius: 12px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: transform 0.15s;
+}
+.empty-btn:active { transform: scale(0.95); }
+
+/* ═══ Animations ═══ */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.animate-fade-in { animation: fadeIn 0.25s ease both; }
+.animate-slide-up { animation: slideUp 0.35s ease both; }
+.animate-scale-in { animation: scaleIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 360px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-value { font-size: 24px; }
+  .weather-temp { font-size: 44px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div class="splash" id="splash">
+  <div class="splash-logo">富</div>
+  <div class="splash-title">富华捕虾</div>
+  <div class="splash-sub">渔船管理系统</div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-avatar">富</div>
+        <div class="header-info">
+          <h1>富华捕虾公司</h1>
+          <p id="update-time">加载中...</p>
+        </div>
+      </div>
+      <div class="header-badge" id="season-badge">休渔期</div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="pages-container" id="pages-container">
+      
+      <!-- Page 0: 首页 -->
+      <div class="page" id="page-home">
+        <div class="page-content">
+          <div class="stats-grid">
+            <div class="stat-card animate-scale-in stagger-1">
+              <div class="stat-icon blue">🚢</div>
+              <div class="stat-value" id="stat-total">--</div>
+              <div class="stat-label">总船数</div>
+            </div>
+            <div class="stat-card animate-scale-in stagger-2">
+              <div class="stat-icon green">⚓</div>
+              <div class="stat-value" id="stat-port">--</div>
+              <div class="stat-label">在港</div>
+            </div>
+            <div class="stat-card animate-scale-in stagger-3">
+              <div class="stat-icon orange">🌊</div>
+              <div class="stat-value" id="stat-sea">--</div>
+              <div class="stat-label">出海</div>
+            </div>
+            <div class="stat-card animate-scale-in stagger-4">
+              <div class="stat-icon red">🏝️</div>
+              <div class="stat-value" id="stat-nansha">--</div>
+              <div class="stat-label">南沙</div>
+            </div>
+          </div>
+
+          <!-- Weather with Canvas - iOS18 Style -->
+          <div class="weather-card-container animate-slide-up stagger-2">
+            <div class="weather-card-ios" id="weather-main-card">
+              <canvas class="weather-canvas-ios" id="weather-canvas-main"></canvas>
+              <div class="weather-content-ios">
+                <div class="weather-header-ios">
+                  <div>
+                    <div class="weather-temp-ios"><span id="weather-temp">--</span><span class="unit">°</span></div>
+                    <div class="weather-desc-ios" id="weather-desc">加载中...</div>
+                  </div>
+                  <div class="weather-icon-ios" id="weather-icon">🌤️</div>
+                </div>
+                <div class="weather-grid-ios">
+                  <div class="weather-item-ios">
+                    <div class="weather-item-value-ios" id="weather-wind">--</div>
+                    <div class="weather-item-label-ios">风速</div>
+                  </div>
+                  <div class="weather-item-ios">
+                    <div class="weather-item-value-ios" id="weather-humidity">--</div>
+                    <div class="weather-item-label-ios">湿度</div>
+                  </div>
+                  <div class="weather-item-ios">
+                    <div class="weather-item-value-ios" id="weather-wave">--</div>
+                    <div class="weather-item-label-ios">浪高</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title animate-fade-in stagger-3">
+            <h2>📢 最新公告</h2>
+            <span class="more" onclick="switchTab(3)">查看全部</span>
+          </div>
+          <div class="notice-list" id="home-notices">
+            <div class="loading-state"><div class="spinner"></div><div class="loading-text">加载公告...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 1: 船位 -->
+      <div class="page" id="page-map">
+        <div class="map-container">
+          <div id="map"></div>
+          <div class="map-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div><span>在港</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div><span>出海</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div><span>南沙</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 2: 气象 -->
+      <div class="page" id="page-weather">
+        <div class="page-content">
+          <div class="loading-state" id="weather-loading"><div class="spinner"></div><div class="loading-text">加载海洋气象...</div></div>
+          <div id="weather-detail" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Page 3: 公告 -->
+      <div class="page" id="page-notices">
+        <div class="page-content">
+          <div class="notice-list" id="notices-list">
+            <div class="loading-state"><div class="spinner"></div><div class="loading-text">加载公告...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 4: 档案 -->
+      <div class="page" id="page-archive">
+        <div class="page-content">
+          <div class="search-bar">
+            <input type="text" class="search-input" id="ship-search" placeholder="搜索船名、船主、电话...">
+          </div>
+          <div class="ship-list" id="ship-list">
+            <div class="loading-state"><div class="spinner"></div><div class="loading-text">加载船舶数据...</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Tab Bar -->
+  <nav class="tabbar">
+    <div class="tab-item active" data-tab="0" onclick="switchTab(0)">
+      <div class="tab-icon">🏠</div>
+      <div class="tab-label">首页</div>
+    </div>
+    <div class="tab-item" data-tab="1" onclick="switchTab(1)">
+      <div class="tab-icon">📍</div>
+      <div class="tab-label">船位</div>
+    </div>
+    <div class="tab-item" data-tab="2" onclick="switchTab(2)">
+      <div class="tab-icon">🌤️</div>
+      <div class="tab-label">气象</div>
+    </div>
+    <div class="tab-item" data-tab="3" onclick="switchTab(3)">
+      <div class="tab-icon">📢</div>
+      <div class="tab-label">公告</div>
+    </div>
+    <div class="tab-item" data-tab="4" onclick="switchTab(4)">
+      <div class="tab-icon">📋</div>
+      <div class="tab-label">档案</div>
+    </div>
+  </nav>
+</div>
+
+<!-- Ship Detail Page -->
+<div class="detail-page" id="ship-detail">
+  <div class="detail-header">
+    <button class="detail-back" onclick="closeDetail('ship-detail')">←</button>
+    <div class="detail-title" id="ship-detail-title">船舶详情</div>
+  </div>
+  <div class="detail-content" id="ship-detail-content"></div>
+</div>
+
+<!-- Notice Detail Page -->
+<div class="detail-page" id="notice-detail">
+  <div class="detail-header">
+    <button class="detail-back" onclick="closeDetail('notice-detail')">←</button>
+    <div class="detail-title" id="notice-detail-title">公告详情</div>
+  </div>
+  <div class="detail-content" id="notice-detail-content"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="/h5/lib/leaflet.js"></script>
+<script>
+/* ═══ Global State ═══ */
+let ships = [];
+let announcements = [];
+let weatherData = null;
+let currentTab = 0;
+let mapInited = false;
+let map = null;
+let markers = [];
+let weatherAnimFrame = null;
+
+/* ═══ Splash ═══ */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+      initApp();
+    }, 800);
+  }, 1500);
+});
+
+/* ═══ Init ═══ */
+async function initApp() {
+  updateTime();
+  updateSeasonBadge();
+  initWeatherCanvas();
+  
+  await Promise.all([loadShips(), loadAnnouncements(), loadWeather()]);
+  
+  setInterval(updateTime, 60000);
+  initSwipeGesture();
+}
+
+/* ═══ Tab Switch ═══ */
+function switchTab(idx) {
+  if (idx === currentTab) return;
+  currentTab = idx;
+  
+  const container = document.getElementById('pages-container');
+  container.style.transition = 'transform 0.35s cubic-bezier(0.16,1,0.3,1)';
+  container.style.transform = `translateX(-${idx * 100}%)`;
+  setTimeout(() => { container.style.transition = 'none'; }, 400);
+  
+  document.querySelectorAll('.tab-item').forEach((tab, i) => {
+    tab.classList.toggle('active', i === idx);
+  });
+  
+  if (idx === 1 && !mapInited) setTimeout(initMap, 100);
+  if (idx === 2) loadWeatherDetail();
+}
+
+/* ═══ Swipe Gesture ═══ */
+function initSwipeGesture() {
+  let startX = 0, startY = 0, startTime = 0, tracking = false;
+  const main = document.querySelector('.main');
+  
+  main.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+    tracking = true;
+  }, { passive: true });
+  
+  main.addEventListener('touchmove', e => {
+    if (!tracking) return;
+    if (Math.abs(e.touches[0].clientY - startY) > Math.abs(e.touches[0].clientX - startX)) {
+      tracking = false;
+    }
+  }, { passive: true });
+  
+  main.addEventListener('touchend', e => {
+    if (!tracking) return;
+    tracking = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dt = Date.now() - startTime;
+    if (Math.abs(dx) > 50 && dt < 400) {
+      if (dx < 0 && currentTab < 4) switchTab(currentTab + 1);
+      else if (dx > 0 && currentTab > 0) switchTab(currentTab - 1);
+    }
+  }, { passive: true });
+}
+
+/* ═══ Weather Canvas Animation ═══ */
+function initWeatherCanvas() {
+  const canvas = document.getElementById('weather-canvas');
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  const waves = [];
+  
+  function resize() {
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = canvas.offsetHeight * 2;
+    ctx.scale(2, 2);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  
+  // Create particles (stars/dots)
+  for (let i = 0; i < 30; i++) {
+    particles.push({
+      x: Math.random() * canvas.offsetWidth,
+      y: Math.random() * canvas.offsetHeight,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.3,
+      size: Math.random() * 2 + 1,
+      alpha: Math.random() * 0.5 + 0.2
+    });
+  }
+  
+  // Create waves
+  for (let i = 0; i < 3; i++) {
+    waves.push({
+      amplitude: 15 + i * 8,
+      frequency: 0.02 + i * 0.005,
+      speed: 0.3 + i * 0.1,
+      phase: i * Math.PI / 3,
+      y: canvas.offsetHeight * 0.6 + i * 20
+    });
+  }
+  
+  function draw() {
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    
+    // Gradient background
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#1e3a5f');
+    grad.addColorStop(0.5, '#2563eb');
+    grad.addColorStop(1, '#1d4ed8');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    
+    // Draw particles
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = w;
+      if (p.x > w) p.x = 0;
+      if (p.y < 0) p.y = h;
+      if (p.y > h) p.y = 0;
+      
+      ctx.globalAlpha = p.alpha;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    
+    // Draw waves
+    waves.forEach((wave, i) => {
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      
+      const time = Date.now() / 1000;
+      for (let x = 0; x <= w; x += 2) {
+        const y = wave.y + Math.sin(x * wave.frequency + time * wave.speed + wave.phase) * wave.amplitude;
+        ctx.lineTo(x, y);
+      }
+      
+      ctx.lineTo(w, h);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(255,255,255,${0.08 - i * 0.02})`;
+      ctx.fill();
+    });
+    
+    weatherAnimFrame = requestAnimationFrame(draw);
+  }
+  
+  draw();
+}
+
+/* ═══ Data Loading ═══ */
+async function loadShips() {
+  try {
+    const res = await fetch(API_CONFIG.getUrl('/api/ships'));
+    const data = await res.json();
+    ships = data.data || data.ships || [];
+    renderStats();
+    renderShipList();
+  } catch (err) {
+    console.error('Failed to load ships:', err);
+    document.getElementById('ship-list').innerHTML = '<div class="empty-state"><div class="empty-icon">🚢</div><div class="empty-text">无法加载船舶数据</div><button class="empty-btn" onclick="loadShips()">重试</button></div>';
+  }
+}
+
+async function loadAnnouncements() {
+  try {
+    const res = await fetch(API_CONFIG.getUrl('/api/announcements'));
+    const data = await res.json();
+    announcements = data.data || [];
+    renderHomeNotices();
+    renderNoticesList();
+  } catch (err) {
+    console.error('Failed to load announcements:', err);
+  }
+}
+
+async function loadWeather() {
+  try {
+    const res = await fetch(API_CONFIG.getUrl('/api/weather'));
+    weatherData = await res.json();
+    renderWeatherCard();
+  } catch (err) {
+    console.error('Failed to load weather:', err);
+  }
+}
+
+/* ═══ Rendering ═══ */
+function renderStats() {
+  const total = ships.length;
+  const inPort = ships.filter(s => !s.isSouthSea && (!s.remark || !s.remark.includes('锚地'))).length;
+  const atSea = ships.filter(s => !s.isSouthSea && s.remark && s.remark.includes('锚地')).length;
+  const nansha = ships.filter(s => s.isSouthSea).length;
+  
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-port').textContent = inPort;
+  document.getElementById('stat-sea').textContent = atSea;
+  document.getElementById('stat-nansha').textContent = nansha;
+}
+
+function renderWeatherCard() {
+  if (!weatherData) return;
+  document.getElementById('weather-temp').textContent = weatherData.temperature || '--';
+  document.getElementById('weather-desc').textContent = weatherData.description || '晴';
+  document.getElementById('weather-wind').textContent = weatherData.windSpeed || '--';
+  document.getElementById('weather-humidity').textContent = weatherData.humidity || '--';
+  document.getElementById('weather-wave').textContent = weatherData.waveHeight || '--';
+  
+  let icon = '🌤️';
+  const desc = weatherData.description || '';
+  if (desc.includes('雨')) icon = '🌧️';
+  else if (desc.includes('云') || desc.includes('阴')) icon = '☁️';
+  else if (desc.includes('雪')) icon = '❄️';
+  document.getElementById('weather-icon').textContent = icon;
+}
+
+function renderHomeNotices() {
+  const container = document.getElementById('home-notices');
+  const list = announcements.slice(0, 3);
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-text">暂无公告</div></div>';
+    return;
+  }
+  container.innerHTML = list.map((n, i) => {
+    const tag = getTag(n.type);
+    return `<div class="notice-card animate-fade-in stagger-${i+4}" onclick="showNoticeDetail(${i})">
+      <div class="notice-header"><span class="notice-tag ${tag.cls}">${tag.text}</span><span class="notice-time">${formatTime(n.publishTime)}</span></div>
+      <div class="notice-title">${esc(n.title)}</div>
+      <div class="notice-preview">${esc(n.content)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderNoticesList() {
+  const container = document.getElementById('notices-list');
+  if (announcements.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-text">暂无公告</div></div>';
+    return;
+  }
+  container.innerHTML = announcements.map((n, i) => {
+    const tag = getTag(n.type);
+    return `<div class="notice-card animate-fade-in stagger-${Math.min(i+1,6)}" onclick="showNoticeDetail(${i})">
+      <div class="notice-header"><span class="notice-tag ${tag.cls}">${tag.text}</span><span class="notice-time">${formatTime(n.publishTime)}</span></div>
+      <div class="notice-title">${esc(n.title)}</div>
+      <div class="notice-preview">${esc(n.content)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderShipList(filter) {
+  const container = document.getElementById('ship-list');
+  let list = ships;
+  if (filter) {
+    const q = filter.toLowerCase();
+    list = ships.filter(s => (s.shipName||'').toLowerCase().includes(q) || (s.owner||'').toLowerCase().includes(q) || (s.tel||'').toLowerCase().includes(q));
+  }
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🚢</div><div class="empty-text">${filter ? '未找到匹配的船舶' : '暂无船舶数据'}</div></div>`;
+    return;
+  }
+  container.innerHTML = list.map((s, i) => {
+    const status = s.isSouthSea ? 'nansha' : (s.remark && s.remark.includes('锚地') ? 'at-sea' : 'in-port');
+    const statusText = s.isSouthSea ? '南沙' : (s.remark && s.remark.includes('锚地') ? '出海' : '在港');
+    return `<div class="ship-card animate-fade-in stagger-${Math.min(i+1,6)}" onclick="showShipDetail(${i})">
+      <div class="ship-header"><span class="ship-name">${esc(s.shipName)}</span><span class="ship-status ${status}">${statusText}</span></div>
+      <div class="ship-info"><span>👤 ${esc(s.owner)}</span><span>📞 ${esc(s.tel)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══ Detail Pages ═══ */
+function showShipDetail(idx) {
+  const s = ships[idx];
+  if (!s) return;
+  document.getElementById('ship-detail-title').textContent = s.shipName;
+  const status = s.isSouthSea ? '南沙' : (s.remark && s.remark.includes('锚地') ? '出海' : '在港');
+  const age = s.buildDate ? Math.floor((Date.now() - new Date(s.buildDate).getTime()) / (365.25*24*60*60*1000)) : '--';
+  document.getElementById('ship-detail-content').innerHTML = `
+    <div class="detail-card">
+      <div class="detail-field"><div class="detail-field-label">船主</div><div class="detail-field-value">${esc(s.owner)}</div></div>
+      <div class="detail-field"><div class="detail-field-label">电话</div><div class="detail-field-value"><a href="tel:${s.tel}">${esc(s.tel)}</a></div></div>
+      <div class="detail-field"><div class="detail-field-label">状态</div><div class="detail-field-value">${status}</div></div>
+      <div class="detail-field"><div class="detail-field-label">船质</div><div class="detail-field-value">${esc(s.hullMaterial)}</div></div>
+      <div class="detail-field"><div class="detail-field-label">船龄</div><div class="detail-field-value">${age}年</div></div>
+      <div class="detail-field"><div class="detail-field-label">马力</div><div class="detail-field-value">${s.power || '--'}匹</div></div>
+      <div class="detail-field"><div class="detail-field-label">捕捞类型</div><div class="detail-field-value">${esc(s.fishingType)}</div></div>
+      <div class="detail-field"><div class="detail-field-label">年检到期</div><div class="detail-field-value">${esc(s.annualInspect)}</div></div>
+      <div class="detail-field"><div class="detail-field-label">包保干部</div><div class="detail-field-value">${s.baobao_zhen ? esc(s.baobao_zhen.name) + ' ' + esc(s.baobao_zhen.tel) : '--'}</div></div>
+    </div>`;
+  document.getElementById('ship-detail').classList.add('show');
+}
+
+function showNoticeDetail(idx) {
+  const n = announcements[idx];
+  if (!n) return;
+  document.getElementById('notice-detail-title').textContent = n.title;
+  document.getElementById('notice-detail-content').innerHTML = `
+    <div class="detail-card">
+      <div class="detail-field"><div class="detail-field-label">类型</div><div class="detail-field-value">${esc(n.type)}</div></div>
+      <div class="detail-field"><div class="detail-field-label">发布时间</div><div class="detail-field-value">${esc(n.publishTime)}</div></div>
+    </div>
+    <div class="detail-card" style="font-size:14px;line-height:1.8;color:var(--gray-600)">
+      ${esc(n.content).replace(/\n/g, '<br>')}
+    </div>`;
+  document.getElementById('notice-detail').classList.add('show');
+}
+
+function closeDetail(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+/* ═══ Map ═══ */
+function initMap() {
+  if (mapInited) return;
+  mapInited = true;
+  
+  map = L.map('map', { center: [21.48, 109.12], zoom: 10, zoomControl: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+  
+  ships.forEach(s => {
+    if (!s.lat || !s.lng) return;
+    let color = '#3B82F6';
+    if (s.isSouthSea) color = '#F59E0B';
+    else if (s.remark && s.remark.includes('锚地')) color = '#10B981';
+    
+    const marker = L.circleMarker([s.lat, s.lng], {
+      radius: 8, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8
+    }).addTo(map);
+    marker.bindPopup(`<b>${esc(s.shipName)}</b><br>${s.isSouthSea ? '南沙' : (s.remark && s.remark.includes('锚地') ? '出海' : '在港')}`);
+    markers.push(marker);
+  });
+  
+  setTimeout(() => { map.invalidateSize(); }, 200);
+}
+
+/* ═══ Weather Detail ═══ */
+function loadWeatherDetail() {
+  const loading = document.getElementById('weather-loading');
+  const detail = document.getElementById('weather-detail');
+  if (!weatherData) { loading.style.display = 'flex'; detail.style.display = 'none'; return; }
+  loading.style.display = 'none'; detail.style.display = 'block';
+  detail.innerHTML = `
+    <div class="weather-card animate-slide-up" style="min-height:160px">
+      <canvas class="weather-canvas" id="weather-detail-canvas"></canvas>
+      <div class="weather-content">
+        <div class="weather-header">
+          <div><div class="weather-temp"><span>${weatherData.temperature||'--'}</span><span class="unit">°C</span></div><div class="weather-desc">${esc(weatherData.description||'晴')}</div></div>
+          <div class="weather-icon">🌊</div>
+        </div>
+        <div class="weather-grid">
+          <div class="weather-item"><div class="weather-item-value">${weatherData.windSpeed||'--'}</div><div class="weather-item-label">风速</div></div>
+          <div class="weather-item"><div class="weather-item-value">${weatherData.humidity||'--'}%</div><div class="weather-item-label">湿度</div></div>
+          <div class="weather-item"><div class="weather-item-value">${weatherData.waveHeight||'--'}</div><div class="weather-item-label">浪高</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="section-title animate-fade-in stagger-2" style="margin-top:20px"><h2>📋 出海建议</h2></div>
+    <div class="detail-card animate-fade-in stagger-3"><div style="font-size:14px;color:var(--gray-600);line-height:1.8">当前正值休渔期（5月1日-8月16日），严禁出海作业。海况平稳，渔船在港期间请做好防风加固，确保北斗设备在线。</div></div>`;
+  
+  // Init detail canvas
+  setTimeout(() => initDetailWeatherCanvas(), 100);
+}
+
+function initDetailWeatherCanvas() {
+  const canvas = document.getElementById('weather-detail-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * 2;
+  canvas.height = canvas.offsetHeight * 2;
+  ctx.scale(2, 2);
+  
+  const waves = [];
+  for (let i = 0; i < 3; i++) {
+    waves.push({ amplitude: 12+i*6, frequency: 0.02+i*0.005, speed: 0.3+i*0.1, phase: i*Math.PI/3, y: canvas.offsetHeight*0.6+i*15 });
+  }
+  
+  function draw() {
+    const w = canvas.offsetWidth, h = canvas.offsetHeight;
+    const grad = ctx.createLinearGradient(0,0,w,h);
+    grad.addColorStop(0,'#0d2137'); grad.addColorStop(0.5,'#1e3a5f'); grad.addColorStop(1,'#1d4ed8');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+    
+    const time = Date.now()/1000;
+    waves.forEach((wave,i) => {
+      ctx.beginPath(); ctx.moveTo(0,h);
+      for (let x=0;x<=w;x+=2) {
+        ctx.lineTo(x, wave.y+Math.sin(x*wave.frequency+time*wave.speed+wave.phase)*wave.amplitude);
+      }
+      ctx.lineTo(w,h); ctx.closePath();
+      ctx.fillStyle=`rgba(255,255,255,${0.1-i*0.02})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ═══ Search ═══ */
+document.getElementById('ship-search').addEventListener('input', e => renderShipList(e.target.value));
+
+/* ═══ Utilities ═══ */
+function esc(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '--'; }
+
+function formatTime(t) {
+  if (!t) return '';
+  const d = new Date(t.replace(/\//g,'-'));
+  if (isNaN(d)) return t;
+  const diff = Date.now() - d;
+  if (diff < 3600000) return Math.floor(diff/60000)+'分钟前';
+  if (diff < 86400000) return Math.floor(diff/3600000)+'小时前';
+  return (d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+function getTag(type) {
+  const map = {'天气':{cls:'weather',text:'天气'},'休渔':{cls:'holiday',text:'休渔'},'紧急':{cls:'urgent',text:'紧急'},'通知':{cls:'info',text:'通知'}};
+  return map[type] || {cls:'info',text:type||'通知'};
+}
+
+function updateTime() {
+  const now = new Date();
+  document.getElementById('update-time').textContent = now.getHours()+':'+String(now.getMinutes()).padStart(2,'0')+' 更新';
+}
+
+function updateSeasonBadge() {
+  const month = new Date().getMonth()+1;
+  const badge = document.getElementById('season-badge');
+  if (month >= 5 && month <= 8) { badge.textContent='休渔期'; badge.style.background='var(--warning-light)'; badge.style.color='var(--warning)'; }
+  else { badge.textContent='捕捞期'; badge.style.background='var(--success-light)'; badge.style.color='var(--success)'; }
+}
+</script>
+</body>
+</html>
