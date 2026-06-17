@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>JH 交易日记</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: #f5f5f7; color: #1d1d1f; font-size: 14px; }
+.header { background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  position: sticky; top: 0; z-index: 100; padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+.header .sub { font-size: 12px; color: #86868b; margin-top: 2px; }
+.tabs { display: flex; gap: 0; background: #f5f5f7; padding: 8px 16px; border-bottom: 1px solid #e5e5e7; }
+.tab { flex: 1; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 500; color: #86868b;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
+.tab.active { color: #007aff; border-bottom-color: #007aff; }
+.content { padding: 12px 16px; max-width: 600px; margin: 0 auto; }
+.hidden { display: none; }
+
+/* 统计卡片 */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat-card { background: white; border-radius: 12px; padding: 12px 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.stat-val { font-size: 20px; font-weight: 700; color: #1d1d1f; }
+.stat-label { font-size: 10px; color: #86868b; margin-top: 2px; }
+
+/* 表单 */
+.form-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.form-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-full { margin-bottom: 8px; }
+label { display: block; font-size: 11px; color: #86868b; margin-bottom: 4px; font-weight: 500; }
+input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #e5e5e7; border-radius: 8px;
+  font-size: 14px; background: #f5f5f7; outline: none; transition: border 0.2s; }
+input:focus, select:focus { border-color: #007aff; background: white; }
+textarea { min-height: 60px; resize: vertical; }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px;
+  border-radius: 10px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #007aff; color: white; width: 100%; }
+.btn-primary:active { background: #0056b3; transform: scale(0.98); }
+.btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
+.btn-green { background: #34c759; color: white; }
+.btn-red { background: #ff3b30; color: white; }
+.btn-outline { background: transparent; border: 1px solid #e5e5e7; color: #86868b; }
+
+/* 交易列表 */
+.trade-list { display: flex; flex-direction: column; gap: 8px; }
+.trade-item { background: white; border-radius: 12px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.trade-item .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.trade-item .code { font-weight: 600; font-size: 15px; }
+.trade-item .name { color: #86868b; font-size: 12px; margin-left: 6px; }
+.trade-item .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+.badge.buy { background: #ff3b30; color: white; }
+.badge.sell { background: #34c759; color: white; }
+.badge.pending { background: #ff9500; color: white; }
+.badge.win { background: #34c759; color: white; }
+.badge.loss { background: #ff3b30; color: white; }
+.trade-item .detail { display: flex; gap: 12px; font-size: 12px; color: #86868b; }
+.trade-item .detail span { white-space: nowrap; }
+.trade-item .reason { font-size: 12px; color: #86868b; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trade-item .actions { margin-top: 8px; display: flex; gap: 6px; }
+.pnl-positive { color: #ff3b30; font-weight: 600; }
+.pnl-negative { color: #34c759; font-weight: 600; }
+
+/* 情绪卡片 */
+.emotion-bar { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.emotion-score { font-size: 36px; font-weight: 700; text-align: center; }
+.emotion-phase { text-align: center; font-size: 14px; font-weight: 500; margin-top: 4px; }
+.emotion-advice { text-align: center; font-size: 12px; color: #86868b; margin-top: 2px; }
+.emotion-zt { display: flex; justify-content: center; gap: 24px; margin-top: 12px; font-size: 13px; }
+.zt-up { color: #ff3b30; } .zt-down { color: #34c759; }
+
+/* 空状态 */
+.empty { text-align: center; color: #86868b; padding: 40px 20px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>JH 交易日记</h1>
+  <div class="sub" id="dateDisplay"></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('trade')">交易</div>
+  <div class="tab" onclick="switchTab('add')">记一笔</div>
+  <div class="tab" onclick="switchTab('stats')">统计</div>
+  <div class="tab" onclick="switchTab('emotion')">情绪</div>
+</div>
+
+<div class="content">
+  <!-- 交易列表 -->
+  <div id="tab-trade">
+    <div id="tradeStats" class="stats"></div>
+    <div id="tradeList" class="trade-list"></div>
+  </div>
+
+  <!-- 记一笔 -->
+  <div id="tab-add" class="hidden">
+    <div class="form-card">
+      <h3>记录交易</h3>
+      <div class="form-row">
+        <div>
+          <label>股票代码</label>
+          <input id="fCode" placeholder="如 000001" value="">
+        </div>
+        <div>
+          <label>股票名称</label>
+          <input id="fName" placeholder="如 平安银行" value="">
+        </div>
+      </div>
+      <div class="form-row three">
+        <div>
+          <label>方向</label>
+          <select id="fDirection"><option value="buy">买入</option><option value="sell">卖出</option></select>
+        </div>
+        <div>
+          <label>价格</label>
+          <input id="fPrice" type="number" step="0.01" placeholder="成交价">
+        </div>
+        <div>
+          <label>数量(股)</label>
+          <input id="fQty" type="number" placeholder="100">
+        </div>
+      </div>
+      <div class="form-full">
+        <label>买入理由</label>
+        <textarea id="fReason" placeholder="如：集合竞价高开+量比3+热点题材"></textarea>
+      </div>
+      <div class="form-full">
+        <label>交易时情绪</label>
+        <input id="fEmotion" placeholder="如：冷静/兴奋/犹豫/紧张">
+      </div>
+      <button class="btn btn-primary" onclick="addTrade()">记录交易</button>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div id="tab-stats" class="hidden">
+    <div id="statsDetail" class="form-card"></div>
+  </div>
+
+  <!-- 情绪 -->
+  <div id="tab-emotion" class="hidden">
+    <div id="emotionDisplay"></div>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+
+// ====== 日期 ======
+document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+// ====== Tab切换 ======
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.content > div').forEach(d => d.classList.add('hidden'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelector(`.tab[onclick*="'${name}'"]`).classList.add('active');
+  if (name === 'trade') loadTrades();
+  if (name === 'stats') loadStats();
+  if (name === 'emotion') loadEmotion();
+}
+
+// ====== 加载交易列表 ======
+async function loadTrades() {
+  try {
+    const r = await fetch(API + '/trades?limit=50');
+    const data = await r.json();
+    const list = document.getElementById('tradeList');
+    const statsDiv = document.getElementById('tradeStats');
+    
+    // 顶部统计
+    const pending = data.trades.filter(t => t.status === 'pending');
+    const closed = data.trades.filter(t => t.status === 'closed');
+    const wins = closed.filter(t => t.pnl > 0);
+    statsDiv.innerHTML = `
+      <div class="stat-card"><div class="stat-val">${data.total}</div><div class="stat-label">总交易</div></div>
+      <div class="stat-card"><div class="stat-val">${pending.length}</div><div class="stat-label">持仓中</div></div>
+      <div class="stat-card"><div class="stat-val">${closed.length}</div><div class="stat-label">已平仓</div></div>
+      <div class="stat-card"><div class="stat-val">${closed.length ? (wins.length/closed.length*100).toFixed(0) : 0}%</div><div class="stat-label">胜率</div></div>
+    `;
+    
+    if (data.trades.length === 0) {
+      list.innerHTML = '<div class="empty">暂无交易记录<br>点击"记一笔"开始记录</div>';
+      return;
+    }
+    
+    list.innerHTML = data.trades.map(t => {
+      const isWin = t.pnl > 0;
+      const isClosed = t.status === 'closed';
+      const statusBadge = isClosed ? (isWin ? 'win' : 'loss') : 'pending';
+      const statusText = isClosed ? (isWin ? '盈利' : '亏损') : '持仓中';
+      const pnlClass = isWin ? 'pnl-positive' : 'pnl-negative';
+      const pnlText = isClosed ? `${isWin ? '+' : ''}${t.pnl_pct.toFixed(1)}% (¥${t.pnl.toFixed(0)})` : '';
+      
+      return `<div class="trade-item">
+        <div class="top">
+          <div><span class="code">${t.code}</span><span class="name">${t.name || ''}</span></div>
+          <div><span class="badge ${t.direction}">${t.direction === 'buy' ? '买入' : '卖出'}</span>
+          <span class="badge ${statusBadge}">${statusText}</span></div>
+        </div>
+        <div class="detail">
+          <span>${t.date} ${t.time}</span>
+          <span>¥${t.price}</span>
+          <span>${t.quantity}股</span>
+          <span>¥${t.amount.toFixed(0)}</span>
+          ${isClosed ? `<span class="${pnlClass}">${pnlText}</span>` : ''}
+        </div>
+        ${t.reason ? `<div class="reason">📝 ${t.reason}</div>` : ''}
+        ${t.emotion ? `<div class="reason">😊 ${t.emotion}</div>` : ''}
+        ${isClosed ? '' : `<div class="actions">
+          <button class="btn-sm btn-green" onclick="closeTrade(${t.id}, prompt('平仓价：', '${t.price}'))">平仓</button>
+          <button class="btn-sm btn-outline" onclick="deleteTrade(${t.id})">删除</button>
+        </div>`}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('tradeList').innerHTML = `<div class="empty">加载失败: ${e.message}</div>`;
+  }
+}
+
+// ====== 新增交易 ======
+async function addTrade() {
+  const data = {
+    code: document.getElementById('fCode').value.trim(),
+    name: document.getElementById('fName').value.trim(),
+    direction: document.getElementById('fDirection').value,
+    price: document.getElementById('fPrice').value,
+    quantity: document.getElementById('fQty').value,
+    reason: document.getElementById('fReason').value.trim(),
+    emotion: document.getElementById('fEmotion').value.trim(),
+  };
+  
+  if (!data.code || !data.price || !data.quantity) {
+    alert('请填写代码、价格和数量');
+    return;
+  }
+  
+  try {
+    const r = await fetch(API + '/trades', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    });
+    const res = await r.json();
+    if (res.success) {
+      // 清空表单
+      ['fCode','fName','fPrice','fQty','fReason','fEmotion'].forEach(id => document.getElementById(id).value = '');
+      alert('记录成功！');
+      switchTab('trade');
+    } else {
+      alert('失败: ' + (res.error || '未知错误'));
+    }
+  } catch(e) {
+    alert('网络错误: ' + e.message);
+  }
+}
+
+// ====== 平仓 ======
+async function closeTrade(id, price) {
+  if (!price) return;
+  try {
+    const r = await fetch(API + '/trades/' + id, {
+      method: 'PUT', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ close_price: price }),
+    });
+    const res = await r.json();
+    if (res.success) loadTrades();
+  } catch(e) { alert('错误: ' + e.message); }
+}
+
+// ====== 删除 ======
+async function deleteTrade(id) {
+  if (!confirm('确定删除这条记录？')) return;
+  try {
+    await fetch(API + '/trades/' + id, { method: 'DELETE' });
+    loadTrades();
+  } catch(e) { alert('错误: ' + e.message); }
+}
+
+// ====== 统计 ======
+async function loadStats() {
+  try {
+    const r = await fetch(API + '/trades/stats');
+    const data = await r.json();
+    document.getElementById('statsDetail').innerHTML = `
+      <h3>交易统计</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:14px">
+        <div>总交易次数: <strong>${data.total}</strong></div>
+        <div>已平仓: <strong>${data.closed}</strong></div>
+        <div>胜率: <strong>${data.win_rate}%</strong></div>
+        <div>总盈亏: <strong class="${data.total_pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">¥${data.total_pnl}</strong></div>
+        <div>平均收益率: <strong class="${data.avg_pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${data.avg_pnl}%</strong></div>
+      </div>
+      <div style="margin-top:16px;padding:12px;background:#f5f5f7;border-radius:10px;font-size:12px;color:#86868b">
+        💡 持续记录交易才能发现自己的模式<br>
+        关注：按计划执行了吗？止损严格执行了吗？
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById('statsDetail').innerHTML = `<div class="empty">加载失败</div>`;
+  }
+}
+
+// ====== 情绪数据 ======
+async function loadEmotion() {
+  try {
+    const r = await fetch(API + '/market/emotion');
+    const data = await r.json();
+    const score = data.score || 50;
+    const phase = data.phase || '未知';
+    const color = score < 30 ? '#ff3b30' : score < 50 ? '#ff9500' : score < 70 ? '#007aff' : score < 85 ? '#34c759' : '#ff3b30';
+    
+    document.getElementById('emotionDisplay').innerHTML = `
+      <div class="emotion-bar">
+        <div class="emotion-score" style="color:${color}">${score}</div>
+        <div class="emotion-phase" style="color:${color}">${phase}</div>
+        <div class="emotion-advice">${data.advice || ''}</div>
+        <div class="emotion-zt">
+          <span class="zt-up">📈 涨停 ${data.limit_up || 0}</span>
+          <span class="zt-down">📉 跌停 ${data.limit_down || 0}</span>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3>仓位建议</h3>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">${data.position_range || '-'}</div>
+        <div style="font-size:12px;color:#86868b">${data.position_advice || '-'}</div>
+      </div>
+      <div class="form-card">
+        <h3>情绪阶段说明</h3>
+        <div style="font-size:12px;color:#86868b;line-height:1.8">
+          <div>❄️ 冰点 (&lt;25) → 空仓观望</div>
+          <div>🌤 修复 (25-40) → 轻仓试错</div>
+          <div>☀️ 发酵 (40-60) → 正常交易</div>
+          <div>🔥 高潮 (60-75) → 重仓出击</div>
+          <div>⚠️ 过热 (75-85) → 警惕减仓</div>
+          <div>🚨 极端 (&gt;85) → 防守为主</div>
+        </div>
+      </div>
+      ${data.limit_up_stocks ? `<div class="form-card"><h3>涨停股TOP10</h3><div style="font-size:12px;color:#86868b">${data.limit_up_stocks.join('、')}</div></div>` : ''}
+    `;
+  } catch(e) {
+    document.getElementById('emotionDisplay').innerHTML = `<div class="empty">情绪数据未生成<br>请先运行 emotion_monitor.py</div>`;
+  }
+}
+
+// ====== 启动 ======
+loadTrades();
+</script>
+</body>
+</html>
